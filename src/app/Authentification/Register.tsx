@@ -1,14 +1,10 @@
-import AuthLayout from '@/components/auth/AuthLayout';
 import EmailField from '@/components/auth/EmailField';
 import PasswordField from '@/components/auth/PasswordField';
 import Button from '@/components/ui/Button';
 
 export default function Register() {
   return (
-    <AuthLayout
-      title="Créer un compte"
-      description="Renseigne les informations ci-dessous."
-    >
+    <div title="Créer un compte">
       <EmailField id="register-email" />
       <PasswordField
         id="register-password"
@@ -21,6 +17,6 @@ export default function Register() {
         placeholder="Répéter le mot de passe"
       />
       <Button className="w-full">Créer le compte</Button>
-    </AuthLayout>
+    </div>
   );
 }

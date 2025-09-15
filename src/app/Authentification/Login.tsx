@@ -1,4 +1,3 @@
-import AuthLayout from '@/components/auth/AuthLayout';
 import EmailField from '@/components/auth/EmailField';
 import PasswordField from '@/components/auth/PasswordField';
 import RememberMe from '@/components/auth/RememberMe';
@@ -7,10 +6,7 @@ import Button from '@/components/ui/Button';
 
 export default function Login() {
   return (
-    <AuthLayout
-      title="Connexion"
-      description="Entre ton email et ton mot de passe."
-    >
+    <div title="Connexion">
       <EmailField id="login-email" />
       <PasswordField id="login-password" />
       <div className="flex items-center justify-between">
@@ -18,6 +14,6 @@ export default function Login() {
         <ForgotPasswordLink />
       </div>
       <Button className="w-full">Se connecter</Button>
-    </AuthLayout>
+    </div>
   );
 }
