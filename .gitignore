@@ -1,5 +1,13 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
+# Claude Code files
+CLAUDE.md
+
+# Docker files (if needed later)
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
 # dependencies
 /node_modules
 /.pnp

@@ -137,28 +137,6 @@ npx prisma db push      # Pousser le schéma vers la base de données
 npx prisma studio       # Interface graphique pour la base de données
 ```
 
-## 🐳 Docker
-
-### Développement local avec Docker
-
-```bash
-# Lancer PostgreSQL uniquement
-docker-compose up db
-
-# Lancer l'application complète
-docker-compose up
-```
-
-### Build et déploiement
-
-```bash
-# Build l'image Docker
-docker build -t bookineo .
-
-# Lancer avec Docker Compose
-docker-compose up --build
-```
-
 ## 🧪 Tests et validation
 
 ### Validation des champs
