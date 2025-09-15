@@ -1,0 +1,95 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  firstName String?
+  lastName  String?
+  birthDate DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  ownedBooks Book[]        @relation("BookOwner")
+  rentals    Rental[]
+  sentMessages Message[]   @relation("MessageSender")
+  receivedMessages Message[] @relation("MessageReceiver")
+
+  @@map("users")
+}
+
+model Book {
+  id          String   @id @default(cuid())
+  title       String
+  author      String
+  year        Int
+  category    String
+  price       Float
+  status      BookStatus @default(AVAILABLE)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  owner       User     @relation("BookOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId     String
+  rentals     Rental[]
+
+  @@map("books")
+}
+
+model Rental {
+  id          String      @id @default(cuid())
+  startDate   DateTime
+  endDate     DateTime
+  returnDate  DateTime?
+  duration    Int
+  comment     String?
+  status      RentalStatus @default(ACTIVE)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  book        Book        @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  bookId      String
+  renter      User        @relation(fields: [renterId], references: [id], onDelete: Cascade)
+  renterId    String
+
+  @@map("rentals")
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  content   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  sender    User     @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+  senderId  String
+  receiver  User     @relation("MessageReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+  receiverId String
+
+  @@map("messages")
+}
+
+enum BookStatus {
+  AVAILABLE
+  RENTED
+}
+
+enum RentalStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
