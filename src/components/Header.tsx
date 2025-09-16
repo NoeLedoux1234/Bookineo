@@ -1,5 +1,7 @@
+'use client';
+
+import { signOut } from 'next-auth/react';
 import Link from 'next/link';
-import React from 'react';
 
 type HeaderProps = { userName?: string | null };
 
@@ -63,14 +65,12 @@ export default function Header({ userName }: HeaderProps) {
                 </Link>
               </li>
               <li>
-                <form method="post" action="/api/auth/logout">
-                  <button
-                    type="submit"
-                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                  >
-                    Déconnexion
-                  </button>
-                </form>
+                <button
+                  onClick={() => signOut()}
+                  className="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                >
+                  Déconnexion
+                </button>
               </li>
             </ul>
           </div>
