@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 // @ts-expect-error - NextAuth types compatibility issue with Next.js 15
 import type { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
-import { prisma } from './Prisma';
+import { prisma } from './prisma';
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),

@@ -2,7 +2,7 @@ import { jwtVerify } from 'jose';
 import { getServerSession } from 'next-auth/next';
 import { NextRequest } from 'next/server';
 import { authOptions } from './auth';
-import { prisma } from './Prisma';
+import { prisma } from './prisma';
 
 // Types pour l'authentification
 export interface AuthenticatedUser {
