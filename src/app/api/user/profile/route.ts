@@ -11,13 +11,25 @@ import { z } from 'zod';
 const profileUpdateSchema = z.object({
   firstName: z
     .string()
-    .min(2, 'Prénom requis')
-    .max(50, 'Prénom trop long')
+    .min(2, 'Prénom requis (minimum 2 caractères)')
+    .max(50, 'Prénom trop long (maximum 50 caractères)')
     .optional(),
-  lastName: z.string().min(2, 'Nom requis').max(50, 'Nom trop long').optional(),
+  lastName: z
+    .string()
+    .min(2, 'Nom requis (minimum 2 caractères)')
+    .max(50, 'Nom trop long (maximum 50 caractères)')
+    .optional(),
   birthDate: z
     .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Format de date invalide (YYYY-MM-DD)')
+    .regex(
+      /^\d{4}-\d{2}-\d{2}$/,
+      'Format de date invalide (utilisez YYYY-MM-DD)'
+    )
+    .refine((date) => {
+      const d = new Date(date);
+      const now = new Date();
+      return d < now;
+    }, 'La date de naissance doit être dans le passé')
     .optional(),
 });
 
