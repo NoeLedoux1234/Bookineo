@@ -2,10 +2,32 @@
 
 import { signOut } from 'next-auth/react';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 
 type HeaderProps = { userName?: string | null };
 
 export default function Header({ userName }: HeaderProps) {
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    fetchUnreadCount();
+
+    // Mettre à jour le compteur toutes les 30 secondes
+    const interval = setInterval(fetchUnreadCount, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const fetchUnreadCount = async () => {
+    try {
+      const response = await fetch('/api/messages/unread-count');
+      if (response.ok) {
+        const data = await response.json();
+        setUnreadCount(data.count || 0);
+      }
+    } catch {
+      // Ignore les erreurs silencieusement
+    }
+  };
   const name = userName ?? 'Invité';
   const initials = name
     .split(' ')
@@ -59,9 +81,14 @@ export default function Header({ userName }: HeaderProps) {
               <li>
                 <Link
                   href="/messages"
-                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center justify-between"
                 >
-                  Messagerie
+                  <span>Messagerie</span>
+                  {unreadCount > 0 && (
+                    <span className="bg-red-500 text-white text-xs rounded-full px-2 py-0.5 min-w-[1.25rem] text-center">
+                      {unreadCount > 99 ? '99+' : unreadCount}
+                    </span>
+                  )}
                 </Link>
               </li>
               <li>

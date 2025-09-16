@@ -1,10 +1,7 @@
-import {
-  createErrorResponse,
-  createSuccessResponse,
-  getAuthenticatedUser,
-} from '@/lib/AuthUtils';
 import { prisma } from '@/lib/prisma';
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
 
 interface RouteParams {
   params: {
@@ -14,15 +11,20 @@ interface RouteParams {
 
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
-    const user = await getAuthenticatedUser(request);
+    const session = await getServerSession(authOptions);
 
-    if (!user) {
-      return createErrorResponse(
-        'Utilisateur non authentifié',
-        { auth: 'Session expirée ou invalide' },
-        401
+    if (!session?.user) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'Utilisateur non authentifié',
+          errors: { auth: 'Session expirée ou invalide' },
+        },
+        { status: 401 }
       );
     }
+
+    const sessionUser = session.user as any;
 
     const { id } = params;
 
@@ -30,7 +32,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const message = await prisma.message.findFirst({
       where: {
         id,
-        receiverId: user.id, // S'assurer que l'utilisateur peut accéder à ce message
+        receiverId: sessionUser.id, // S'assurer que l'utilisateur peut accéder à ce message
       },
       include: {
         sender: {
@@ -45,10 +47,15 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     });
 
     if (!message) {
-      return createErrorResponse(
-        'Message introuvable',
-        { message: "Ce message n'existe pas ou vous n'y avez pas accès" },
-        404
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'Message introuvable',
+          errors: {
+            message: "Ce message n'existe pas ou vous n'y avez pas accès",
+          },
+        },
+        { status: 404 }
       );
     }
 
@@ -76,18 +83,22 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       sentAt: message.createdAt,
     };
 
-    return createSuccessResponse(
+    return NextResponse.json(
       {
+        success: true,
         message: formattedMessage,
       },
-      'Message récupéré et marqué comme lu'
+      { status: 200 }
     );
   } catch (error) {
     console.error('Erreur récupération message:', error);
-    return createErrorResponse(
-      'Erreur interne du serveur',
-      { server: 'Impossible de récupérer le message' },
-      500
+    return NextResponse.json(
+      {
+        success: false,
+        message: 'Erreur interne du serveur',
+        errors: { server: 'Impossible de récupérer le message' },
+      },
+      { status: 500 }
     );
   }
 }

@@ -1,37 +1,39 @@
-import {
-  createErrorResponse,
-  createSuccessResponse,
-  getAuthenticatedUser,
-} from '@/lib/AuthUtils';
 import { prisma } from '@/lib/prisma';
 import { validateSchema } from '@/lib/Validation';
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
 import { z } from 'zod';
 
 const sendMessageSchema = z.object({
-  receiverId: z.string().min(1, 'Destinataire requis'),
+  receiverEmail: z.string().email('Email du destinataire requis'),
   content: z
     .string()
     .min(1, 'Contenu du message requis')
     .max(1000, 'Message trop long (max 1000 caractères)'),
 });
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    const user = await getAuthenticatedUser(request);
+    const session = await getServerSession(authOptions);
 
-    if (!user) {
-      return createErrorResponse(
-        'Utilisateur non authentifié',
-        { auth: 'Session expirée ou invalide' },
-        401
+    if (!session?.user) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'Utilisateur non authentifié',
+          errors: { auth: 'Session expirée ou invalide' },
+        },
+        { status: 401 }
       );
     }
+
+    const sessionUser = session.user as any;
 
     // Récupérer tous les messages reçus par l'utilisateur
     const messages = await prisma.message.findMany({
       where: {
-        receiverId: user.id,
+        receiverId: sessionUser.id,
       },
       include: {
         sender: {
@@ -69,20 +71,25 @@ export async function GET(request: NextRequest) {
       sentAt: message.createdAt,
     }));
 
-    return createSuccessResponse(
+    return NextResponse.json(
       {
+        success: true,
         messages: formattedMessages,
         totalCount: messages.length,
         unreadCount: messages.filter((m) => !m.isRead).length,
+        message: 'Messages récupérés avec succès',
       },
-      'Messages récupérés avec succès'
+      { status: 200 }
     );
   } catch (error) {
     console.error('Erreur récupération messages:', error);
-    return createErrorResponse(
-      'Erreur interne du serveur',
-      { server: 'Impossible de récupérer les messages' },
-      500
+    return NextResponse.json(
+      {
+        success: false,
+        message: 'Erreur interne du serveur',
+        errors: { server: 'Impossible de récupérer les messages' },
+      },
+      { status: 500 }
     );
   }
 }
@@ -90,44 +97,58 @@ export async function GET(request: NextRequest) {
 // POST - Envoyer un message
 export async function POST(request: NextRequest) {
   try {
-    const user = await getAuthenticatedUser(request);
+    const session = await getServerSession(authOptions);
 
-    if (!user) {
-      return createErrorResponse(
-        'Utilisateur non authentifié',
-        { auth: 'Session expirée ou invalide' },
-        401
+    if (!session?.user) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'Utilisateur non authentifié',
+          errors: { auth: 'Session expirée ou invalide' },
+        },
+        { status: 401 }
       );
     }
 
+    const sessionUser = session.user as any;
     const body = await request.json();
     const validation = validateSchema(sendMessageSchema, body);
 
     if (!validation.success) {
-      return createErrorResponse('Données invalides', validation.errors, 400);
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'Données invalides',
+          errors: validation.errors,
+        },
+        { status: 400 }
+      );
     }
 
-    const { receiverId, content } = validation.data!;
+    const { receiverEmail, content } = validation.data!;
 
-    // Vérifier que le destinataire existe
+    // Trouver le destinataire par email
     const receiver = await prisma.user.findUnique({
-      where: { id: receiverId },
+      where: { email: receiverEmail },
       select: { id: true, email: true, firstName: true, lastName: true },
     });
 
     if (!receiver) {
-      return createErrorResponse(
-        'Destinataire introuvable',
-        { receiverId: "Cet utilisateur n'existe pas" },
-        404
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'Destinataire introuvable',
+          errors: { receiverEmail: 'Aucun utilisateur trouvé avec cet email' },
+        },
+        { status: 404 }
       );
     }
 
     // Créer le message
     const message = await prisma.message.create({
       data: {
-        senderId: user.id,
-        receiverId,
+        senderId: sessionUser.id,
+        receiverId: receiver.id,
         content,
       },
       include: {
@@ -150,9 +171,10 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return createSuccessResponse(
+    return NextResponse.json(
       {
-        message: {
+        success: true,
+        data: {
           id: message.id,
           content: message.content,
           sentAt: message.createdAt,
@@ -164,15 +186,19 @@ export async function POST(request: NextRequest) {
                 : receiver.email,
           },
         },
+        message: 'Message envoyé avec succès',
       },
-      'Message envoyé avec succès'
+      { status: 201 }
     );
   } catch (error) {
     console.error('Erreur envoi message:', error);
-    return createErrorResponse(
-      'Erreur interne du serveur',
-      { server: "Impossible d'envoyer le message" },
-      500
+    return NextResponse.json(
+      {
+        success: false,
+        message: 'Erreur interne du serveur',
+        errors: { server: "Impossible d'envoyer le message" },
+      },
+      { status: 500 }
     );
   }
 }
