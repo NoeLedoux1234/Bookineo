@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/Prisma';
-import { registerSchema, validateSchema } from '@/lib/Validation';
+import { registerSchemaSimple, validateSchema } from '@/lib/Validation';
 import bcrypt from 'bcryptjs';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -7,8 +7,8 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
-    // Validation des données avec Zod
-    const validation = validateSchema(registerSchema, body);
+    // Validation des données avec le schéma simple
+    const validation = validateSchema(registerSchemaSimple, body);
 
     if (!validation.success) {
       return NextResponse.json(
@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Hasher le mot de passe
-    const saltRounds = 12; // Sécurité renforcée
+    const saltRounds = 12;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
     // Créer l'utilisateur
@@ -73,18 +73,6 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     console.error('Erreur lors de la création du compte:', error);
-
-    // Gestion spécifique des erreurs Prisma
-    if (error instanceof Error && error.message.includes('Unique constraint')) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: 'Cet email est déjà utilisé',
-          errors: { email: 'Cet email est déjà utilisé' },
-        },
-        { status: 409 }
-      );
-    }
 
     return NextResponse.json(
       {

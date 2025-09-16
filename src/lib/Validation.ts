@@ -17,7 +17,7 @@ export const passwordSchema = z
   .regex(/[A-Z]/, 'Au moins une majuscule requise')
   .regex(/[!@#$%^&*(),.?":{}|<>]/, 'Au moins un caractère spécial requis');
 
-// Schéma d'inscription
+// Schéma d'inscription complet (avec confirmPassword)
 export const registerSchema = z
   .object({
     email: emailSchema,
@@ -39,6 +39,19 @@ export const registerSchema = z
     message: 'Les mots de passe ne correspondent pas',
     path: ['confirmPassword'],
   });
+
+// Schéma d'inscription simple (sans confirmPassword pour frontend)
+export const registerSchemaSimple = z.object({
+  email: emailSchema,
+  password: passwordSchema,
+  firstName: z
+    .string()
+    .min(2, 'Prénom requis')
+    .max(50, 'Prénom trop long')
+    .optional(),
+  lastName: z.string().min(2, 'Nom requis').max(50, 'Nom trop long').optional(),
+  birthDate: z.string().datetime().optional(),
+});
 
 // Schéma de connexion
 export const loginSchema = z.object({
