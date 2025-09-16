@@ -6,20 +6,14 @@ export default withAuth(
     const { pathname } = req.nextUrl;
     const token = req.nextauth.token;
 
-    // Routes publiques (accessibles sans authentification)
-    const publicRoutes = ['/login', '/signup', '/'];
-    const authRoutes = ['/login', '/signup'];
-
     // Si utilisateur connecté et essaie d'accéder aux pages d'auth
-    if (token && authRoutes.includes(pathname)) {
-      return NextResponse.redirect(new URL('/dashboard', req.url));
+    if (token && ['/login', '/signup'].includes(pathname)) {
+      return NextResponse.redirect(new URL('/', req.url));
     }
 
     // Si utilisateur non connecté et essaie d'accéder à une route protégée
-    if (!token && !publicRoutes.includes(pathname)) {
-      const loginUrl = new URL('/login', req.url);
-      loginUrl.searchParams.set('callbackUrl', pathname);
-      return NextResponse.redirect(loginUrl);
+    if (!token && pathname === '/') {
+      return NextResponse.redirect(new URL('/login', req.url));
     }
 
     return NextResponse.next();
@@ -29,22 +23,22 @@ export default withAuth(
       authorized: ({ token, req }) => {
         const { pathname } = req.nextUrl;
 
-        // Toujours autoriser les routes publiques
-        if (['/login', '/signup', '/'].includes(pathname)) {
+        // Pages publiques
+        if (['/login', '/signup'].includes(pathname)) {
           return true;
         }
 
-        // Routes API d'authentification toujours autorisées
+        // Routes API d'authentification
         if (pathname.startsWith('/api/auth/')) {
           return true;
         }
 
-        // Routes API protégées nécessitent un token
+        // Routes API protégées
         if (pathname.startsWith('/api/')) {
           return !!token;
         }
 
-        // Pages protégées nécessitent un token
+        // Page d'accueil et autres pages protégées
         return !!token;
       },
     },
@@ -54,6 +48,9 @@ export default withAuth(
 // Configuration des routes à protéger
 export const config = {
   matcher: [
+    // Page d'accueil maintenant protégée
+    '/',
+
     // Pages protégées
     '/dashboard/:path*',
     '/books/:path*',
