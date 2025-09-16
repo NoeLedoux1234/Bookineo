@@ -1,43 +1,49 @@
-import {
-  createErrorResponse,
-  createSuccessResponse,
-  getAuthenticatedUser,
-} from '@/lib/AuthUtils';
 import { prisma } from '@/lib/prisma';
-import { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    const user = await getAuthenticatedUser(request);
+    const session = await getServerSession(authOptions);
 
-    if (!user) {
-      return createErrorResponse(
-        'Utilisateur non authentifié',
-        { auth: 'Session expirée ou invalide' },
-        401
+    if (!session?.user) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'Utilisateur non authentifié',
+          errors: { auth: 'Session expirée ou invalide' },
+        },
+        { status: 401 }
       );
     }
 
-    // Compter les messages non lus
+    const sessionUser = session.user as any;
+
+    // Compter les messages non lus pour cet utilisateur
     const unreadCount = await prisma.message.count({
       where: {
-        receiverId: user.id,
+        receiverId: sessionUser.id,
         isRead: false,
       },
     });
 
-    return createSuccessResponse(
+    return NextResponse.json(
       {
-        unreadCount,
+        success: true,
+        count: unreadCount,
       },
-      'Compteur de messages non lus récupéré'
+      { status: 200 }
     );
   } catch (error) {
     console.error('Erreur compteur messages non lus:', error);
-    return createErrorResponse(
-      'Erreur interne du serveur',
-      { server: 'Impossible de récupérer le compteur' },
-      500
+    return NextResponse.json(
+      {
+        success: false,
+        message: 'Erreur interne du serveur',
+        errors: { server: 'Impossible de compter les messages non lus' },
+      },
+      { status: 500 }
     );
   }
 }

@@ -76,15 +76,16 @@ export async function getAuthenticatedUser(
   }
 
   // Fallback sur NextAuth session (pour les routes web)
-  const session: { user?: { id?: string } } | null =
-    await getServerSession(authOptions);
+  const session = await getServerSession(authOptions);
 
-  if (!session?.user?.id) {
+  if (!session?.user) {
     return null;
   }
 
+  const sessionUser = session.user as any;
+
   const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
+    where: { id: sessionUser.id },
     select: {
       id: true,
       email: true,
