@@ -3,7 +3,7 @@ import {
   createSuccessResponse,
   getAuthenticatedUser,
 } from '@/lib/AuthUtils';
-import { prisma } from '@/lib/Prisma';
+import { prisma } from '@/lib/prisma';
 import { validateSchema } from '@/lib/Validation';
 import { NextRequest } from 'next/server';
 import { z } from 'zod';

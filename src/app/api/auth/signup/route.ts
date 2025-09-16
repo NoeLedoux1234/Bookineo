@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/Prisma';
+import { prisma } from '@/lib/prisma';
 import { registerSchemaSimple, validateSchema } from '@/lib/Validation';
 import bcrypt from 'bcryptjs';
 import { NextRequest, NextResponse } from 'next/server';

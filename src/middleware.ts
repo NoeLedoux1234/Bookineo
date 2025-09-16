@@ -7,8 +7,8 @@ export default withAuth(
     const token = req.nextauth.token;
 
     // Routes publiques (accessibles sans authentification)
-    const publicRoutes = ['/login', '/register', '/'];
-    const authRoutes = ['/login', '/register'];
+    const publicRoutes = ['/login', '/signup', '/'];
+    const authRoutes = ['/login', '/signup'];
 
     // Si utilisateur connecté et essaie d'accéder aux pages d'auth
     if (token && authRoutes.includes(pathname)) {
@@ -30,7 +30,7 @@ export default withAuth(
         const { pathname } = req.nextUrl;
 
         // Toujours autoriser les routes publiques
-        if (['/login', '/register', '/'].includes(pathname)) {
+        if (['/login', '/signup', '/'].includes(pathname)) {
           return true;
         }
 
@@ -66,6 +66,6 @@ export const config = {
 
     // Pages d'authentification (pour redirection)
     '/login',
-    '/register',
+    '/signup',
   ],
 };

@@ -1,8 +1,9 @@
 'use client';
 
-import React, { JSX, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { loginSchema, validateSchema } from '@/lib/Validation';
+import { signIn } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import React, { JSX, useState } from 'react';
 
 export default function LoginPage(): JSX.Element {
   const router = useRouter();
@@ -35,30 +36,20 @@ export default function LoginPage(): JSX.Element {
 
     setLoading(true);
     try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ email, password }),
+      const result = await signIn('credentials', {
+        email,
+        password,
+        redirect: false,
       });
 
-      const txt = await res.text();
-      let data: any = {};
-      try {
-        data = txt ? JSON.parse(txt) : {};
-      } catch {
-        data = { message: txt };
-      }
-
-      if (!res.ok) {
-        const msg =
-          data?.message || data?.error || res.statusText || 'Erreur serveur';
-        setServerError(msg);
+      if (result?.error) {
+        setServerError('Email ou mot de passe incorrect');
         return;
       }
 
-      // connexion OK → redirection home
-      router.push('/');
+      if (result?.ok) {
+        router.push('/');
+      }
     } catch (err: any) {
       setServerError(err?.message || 'Erreur réseau');
     } finally {

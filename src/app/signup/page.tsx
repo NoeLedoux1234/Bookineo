@@ -1,8 +1,8 @@
 'use client';
 
-import React, { JSX, useState } from 'react';
+import { registerSchemaSimple, validateSchema } from '@/lib/Validation';
 import { useRouter } from 'next/navigation';
-import { registerSchema, validateSchema } from '@/lib/Validation';
+import React, { JSX, useState } from 'react';
 
 export default function SignupPage(): JSX.Element {
   const router = useRouter();
@@ -15,9 +15,13 @@ export default function SignupPage(): JSX.Element {
   const [serverError, setServerError] = useState<string | null>(null);
 
   const validate = (): boolean => {
-    // on utilise le schéma server-friendly existant (registerSchema) pour valider côté client
-    const payload = { email, password, confirmPassword: confirm };
-    const res = validateSchema(registerSchema, payload);
+    // Validation simple côté client
+    if (password !== confirm) {
+      setErrors(['Les mots de passe ne correspondent pas']);
+      return false;
+    }
+    const payload = { email, password };
+    const res = validateSchema(registerSchemaSimple, payload);
     if (!res.success) {
       setErrors(Object.values(res.errors ?? {}));
       return false;
@@ -34,7 +38,7 @@ export default function SignupPage(): JSX.Element {
 
     setLoading(true);
     try {
-      const res = await fetch('/api/auth/register', {
+      const res = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
