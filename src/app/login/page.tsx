@@ -2,11 +2,9 @@
 
 import { loginSchema, validateSchema } from '@/lib/Validation';
 import { signIn } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
 import React, { JSX, useState } from 'react';
 
 export default function LoginPage(): JSX.Element {
-  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [remember, setRemember] = useState(false);
@@ -48,7 +46,8 @@ export default function LoginPage(): JSX.Element {
       }
 
       if (result?.ok) {
-        router.push('/');
+        // Force un refresh pour mettre à jour les données de session
+        window.location.href = '/';
       }
     } catch (err: any) {
       setServerError(err?.message || 'Erreur réseau');
