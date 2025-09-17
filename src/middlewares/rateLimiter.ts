@@ -120,7 +120,7 @@ export const rateLimiters = {
   // Spécial pour les messages (anti-spam)
   messaging: createRateLimiter({
     windowMs: 1 * 60 * 1000, // 1 minute
-    maxRequests: 10,
+    maxRequests: 30, // Augmenté pour permettre plus de messages en développement
     message:
       "Trop de messages envoyés, veuillez attendre avant d'envoyer un nouveau message",
   }),
@@ -189,4 +189,20 @@ export function getRateLimitInfo(request: NextRequest): {
     resetTime: record.resetTime,
     total: 100,
   };
+}
+
+// Fonction pour nettoyer le rate limiting (développement uniquement)
+export function clearRateLimit(key?: string): void {
+  if (process.env.NODE_ENV !== 'development') {
+    console.warn('clearRateLimit peut seulement être utilisé en développement');
+    return;
+  }
+
+  if (key) {
+    rateLimitStore.delete(key);
+    console.log(`Rate limit cleared for key: ${key}`);
+  } else {
+    rateLimitStore.clear();
+    console.log('All rate limits cleared');
+  }
 }
