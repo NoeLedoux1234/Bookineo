@@ -1,7 +1,7 @@
 'use client';
 import React from 'react';
 
-export type FilterType = 'date' | 'title' | 'rating';
+export type FilterType = 'date' | 'title' | 'rating' | 'genre';
 export type FilterOrder = 'asc' | 'desc';
 
 export type FilterProps = {
@@ -23,6 +23,7 @@ export default function Filter({ type, order, onChange }: FilterProps) {
           <option value="date">Date</option>
           <option value="title">Titre</option>
           <option value="rating">Note</option>
+          <option value="genre">Genre</option>
         </select>
       </label>
       <label className="flex flex-col text-sm">
