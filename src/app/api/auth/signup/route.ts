@@ -6,9 +6,11 @@ import { NextRequest, NextResponse } from 'next/server';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+    console.log('Payload reçu:', body);
 
     // Validation des données avec le schéma simple
     const validation = validateSchema(registerSchemaSimple, body);
+    console.log('Résultat validation:', validation);
 
     if (!validation.success) {
       return NextResponse.json(

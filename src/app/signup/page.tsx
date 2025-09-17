@@ -9,6 +9,9 @@ export default function SignupPage(): JSX.Element {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [birthDate, setBirthDate] = useState('');
   const [show, setShow] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
@@ -20,7 +23,17 @@ export default function SignupPage(): JSX.Element {
       setErrors(['Les mots de passe ne correspondent pas']);
       return false;
     }
-    const payload = { email, password };
+    let birthDateISO = birthDate;
+    if (birthDate && /^\d{4}-\d{2}-\d{2}$/.test(birthDate)) {
+      birthDateISO = new Date(birthDate).toISOString();
+    }
+    const payload = {
+      email,
+      password,
+      firstName,
+      lastName,
+      birthDate: birthDateISO,
+    };
     const res = validateSchema(registerSchemaSimple, payload);
     if (!res.success) {
       setErrors(Object.values(res.errors ?? {}));
@@ -34,6 +47,13 @@ export default function SignupPage(): JSX.Element {
     e.preventDefault();
     setServerError(null);
 
+    // Envoie la date au format ISO complet (YYYY-MM-DDT00:00:00.000Z)
+    let birthDateToSend: string | undefined = undefined;
+    if (birthDate) {
+      birthDateToSend = new Date(birthDate).toISOString();
+    }
+    console.log('birthDate (input):', birthDate);
+    console.log('birthDate (ISO sent):', birthDateToSend);
     if (!validate()) return;
 
     setLoading(true);
@@ -41,7 +61,13 @@ export default function SignupPage(): JSX.Element {
       const res = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({
+          email,
+          password,
+          firstName,
+          lastName,
+          birthDate: birthDateToSend,
+        }),
       });
 
       const txt = await res.text();
@@ -105,6 +131,42 @@ export default function SignupPage(): JSX.Element {
             className="mt-1 block w-full rounded border border-gray-300 p-2"
             autoComplete="email"
             required
+          />
+        </label>
+
+        <label className="block mb-4">
+          <span className="text-sm">Prénom</span>
+          <input
+            type="text"
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
+            className="mt-1 block w-full rounded border border-gray-300 p-2"
+            autoComplete="given-name"
+            placeholder="Prénom"
+          />
+        </label>
+
+        <label className="block mb-4">
+          <span className="text-sm">Nom (optionnel)</span>
+          <input
+            type="text"
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+            className="mt-1 block w-full rounded border border-gray-300 p-2"
+            autoComplete="family-name"
+            placeholder="Nom"
+          />
+        </label>
+
+        <label className="block mb-4">
+          <span className="text-sm">Date de naissance</span>
+          <input
+            type="date"
+            value={birthDate}
+            onChange={(e) => setBirthDate(e.target.value)}
+            className="mt-1 block w-full rounded border border-gray-300 p-2"
+            autoComplete="bday"
+            placeholder="Date de naissance"
           />
         </label>
 
