@@ -8,12 +8,10 @@ export default function ClientHeader() {
   const { data: session } = useSession();
   const pathname = usePathname();
 
-  // Masquer le header sur les pages d'authentification
   if (pathname === '/login' || pathname === '/signup') {
     return null;
   }
 
-  // Construire le nom d'affichage
   let userName: string | null = null;
   if (session?.user) {
     const user = session.user as any;

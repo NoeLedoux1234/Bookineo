@@ -117,6 +117,7 @@ export abstract class BaseRepository<
     }
 
     try {
+      console.log(`[updateById] data sent to Prisma:`, data);
       return await this.model.update({
         where: { id },
         data,
@@ -124,6 +125,16 @@ export abstract class BaseRepository<
       });
     } catch (error) {
       console.error(`Database error updating ${this.modelName}:`, error);
+      console.error('Full error object:', error);
+      if (error instanceof Error) {
+        console.error('Prisma error message:', error.message);
+        if ('code' in error) {
+          console.error('Prisma error code:', error.code);
+        }
+        if ('meta' in error) {
+          console.error('Prisma error meta:', error.meta);
+        }
+      }
       throw new AppError(
         `Erreur lors de la mise à jour de ${this.modelName}`,
         500
