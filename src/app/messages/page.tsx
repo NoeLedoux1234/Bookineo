@@ -7,6 +7,7 @@ interface Message {
   sender: {
     id: string;
     name: string;
+    email: string;
   };
   subject: string;
   isRead: boolean;
@@ -18,10 +19,12 @@ interface MessageDetail {
   sender: {
     id: string;
     name: string;
+    email: string;
   };
   receiver: {
     id: string;
     name: string;
+    email: string;
   };
   content: string;
   isRead: boolean;
@@ -268,7 +271,7 @@ export default function MessagesPage() {
                   <div className="p-6 border-t bg-gray-50">
                     <button
                       onClick={() => {
-                        setRecipient(selectedMessage.sender.name);
+                        setRecipient(selectedMessage.sender.email);
                         setShowCompose(true);
                       }}
                       className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
