@@ -33,26 +33,26 @@ model User {
 }
 
 model Book {
-  id          String   @id @default(cuid())
-  title       String
-  author      String
-  year        Int?
-  category    String
-  price       Float
-  status      BookStatus @default(AVAILABLE)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  asin        String?   @unique
-  isbn10      String?
-  description String?   @db.Text
-  imageUrl    String?
-  rating      String?
-  reviewsCount Int?
-  availability String?
-  format      Json?
-  categories  Json? 
-  dimensions  String?
-  weight      String?
+  id              String   @id @default(cuid())
+  asin            String?  @unique
+  title           String
+  author          String
+  soldBy          String?
+  imgUrl          String?
+  productURL      String?
+  stars           Float?
+  reviews         Int?
+  price           Float
+  isKindleUnlimited Boolean @default(false)
+  categoryId      Int
+  isBestSeller    Boolean @default(false)
+  isEditorsPick   Boolean @default(false)
+  isGoodReadsChoice Boolean @default(false)
+  publishedDate   String?
+  categoryName    String?
+  status          BookStatus @default(AVAILABLE)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
   
   // Relations existantes
   owner       User?     @relation("BookOwner", fields: [ownerId], references: [id], onDelete: Cascade)
