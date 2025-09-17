@@ -62,13 +62,18 @@ export default function ProfilePage() {
     setMessage(null);
 
     try {
+      // Conversion birthDate en ISO-8601 si présent
+      let birthDateToSend = birthDate || null;
+      if (birthDate && birthDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        birthDateToSend = new Date(birthDate).toISOString();
+      }
       const response = await fetch('/api/user/profile', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           firstName: firstName || null,
           lastName: lastName || null,
-          birthDate: birthDate || null,
+          birthDate: birthDateToSend,
         }),
       });
 

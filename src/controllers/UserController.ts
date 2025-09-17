@@ -57,16 +57,24 @@ export class UserController extends BaseController {
         filteredData.birthDate = updateData.birthDate;
       }
 
-      const user = await userService.updateUser(
-        authContext.user.id,
-        filteredData
-      );
+      // Log pour debug
+      console.log('[PUT /api/user/profile] filteredData:', filteredData);
+      console.log('[PUT /api/user/profile] userId:', authContext.user.id);
 
-      return {
-        success: true,
-        profile: user,
-        message: 'Profil mis à jour avec succès',
-      };
+      try {
+        const user = await userService.updateUser(
+          authContext.user.id,
+          filteredData
+        );
+        return {
+          success: true,
+          profile: user,
+          message: 'Profil mis à jour avec succès',
+        };
+      } catch (error) {
+        console.error('[PUT /api/user/profile] update error:', error);
+        throw error;
+      }
     });
   }
 
