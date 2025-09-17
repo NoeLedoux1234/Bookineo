@@ -1,11 +1,14 @@
 'use client';
+
 import React, { JSX } from 'react';
 import type { FilterType } from '@/components/Filter';
 import Card from '@/components/Card';
 import Filter from '@/components/Filter';
 
 export default function HomePage(): JSX.Element {
-  const [filterType, setFilterType] = React.useState<FilterType>('date');
+  const [filterType, setFilterType] = React.useState<FilterType>(
+    'date' as FilterType
+  );
   const [filterOrder, setFilterOrder] = React.useState<'asc' | 'desc'>('asc');
 
   return (
