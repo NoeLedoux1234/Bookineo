@@ -1,6 +1,8 @@
 // Script de test pour l'import des livres
 // Usage: node scripts/test-import.js [chemin_vers_books.json]
 
+import fs from 'fs';
+
 async function testImport(jsonFilePath) {
   try {
     console.log("🚀 Test d'import des livres Amazon");

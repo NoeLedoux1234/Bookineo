@@ -34,6 +34,13 @@ export default function LoginPage(): JSX.Element {
 
     setLoading(true);
     try {
+      // Stocker la préférence Remember Me dans localStorage temporairement
+      if (remember) {
+        localStorage.setItem('bookineo-remember-me', 'true');
+      } else {
+        localStorage.removeItem('bookineo-remember-me');
+      }
+
       const result = await signIn('credentials', {
         email,
         password,
@@ -46,6 +53,13 @@ export default function LoginPage(): JSX.Element {
       }
 
       if (result?.ok) {
+        // Toujours appeler l'API pour définir/supprimer le cookie Remember Me
+        await fetch('/api/auth/remember-me', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ remember }),
+        });
+
         // Force un refresh pour mettre à jour les données de session
         window.location.href = '/';
       }
