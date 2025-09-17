@@ -1,0 +1,8 @@
+# Dossier pour les datasets de livres
+# 
+# Placez vos fichiers JSON de livres ici :
+# - books.json (votre dataset principal)
+# - books-sample.json (échantillon de test)
+#
+# Le service d'import prendra automatiquement 1000 livres aléatoires
+# du dataset fourni.

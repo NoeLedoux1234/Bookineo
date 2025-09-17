@@ -1,0 +1,51 @@
+[
+  {
+    "asin": "0007350813",
+    "ISBN10": "0007350813",
+    "answered_questions": 0,
+    "availability": "In Stock.",
+    "brand": "Emily Brontë",
+    "currency": "USD",
+    "date_first_available": null,
+    "delivery": ["FREE delivery Tuesday, December 28"],
+    "department": null,
+    "description": "A classic novel by Emily Brontë",
+    "discount": null,
+    "domain": "www.amazon.com",
+    "features": [],
+    "final_price": 3.99,
+    "format": [
+      {
+        "name": "Kindle",
+        "price": "$0.99",
+        "url": "/Wuthering-Heights-Emily-Bronte-ebook/dp/B001C5L5V0"
+      }
+    ],
+    "image_url": "https://images-na.ssl-images-amazon.com/images/I/41k1JwQ6zVL._SY291_BO1,204,203,200_QL40_FMwebp_.jpg",
+    "images_count": "4",
+    "initial_price": null,
+    "item_weight": "7.8 ounces",
+    "manufacturer": null,
+    "model_number": null,
+    "plus_content": false,
+    "product_dimensions": "1 x 4.3 x 7 inches",
+    "rating": "4.6 out of 5 stars",
+    "reviews_count": 13451,
+    "root_bs_rank": 253400,
+    "seller_id": "ATVPDKIKX0DER",
+    "seller_name": "Amazon",
+    "timestamp": "2021-12-21T23:35:40.084Z",
+    "title": "Wuthering Heights (Collins Classics)",
+    "upc": null,
+    "url": "https://www.amazon.com/dp/0007350813",
+    "video": false,
+    "video_count": 0,
+    "categories": ["Books", "Literature & Fiction", "Genre Fiction"],
+    "best_sellers_rank": [
+      {
+        "category": "Books / Literature & Fiction / Historical Fiction",
+        "rank": 28
+      }
+    ]
+  }
+]

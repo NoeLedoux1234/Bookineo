@@ -63,9 +63,24 @@ export const authOptions: NextAuthOptions = {
     },
     async session({ session, token }: { session: any; token: any }) {
       if (token) {
+        // Vérifier que l'utilisateur existe toujours en base
+        const userExists = await prisma.user.findUnique({
+          where: { id: token.id },
+          select: { id: true, email: true, firstName: true, lastName: true },
+        });
+
+        if (!userExists) {
+          // L'utilisateur n'existe plus, invalider la session
+          console.log(
+            `🚨 Utilisateur ${token.id} n'existe plus, session invalidée`
+          );
+          return null;
+        }
+
         session.user.id = token.id as string;
-        session.user.firstName = token.firstName;
-        session.user.lastName = token.lastName;
+        session.user.email = userExists.email;
+        session.user.firstName = userExists.firstName;
+        session.user.lastName = userExists.lastName;
       }
       return session;
     },
