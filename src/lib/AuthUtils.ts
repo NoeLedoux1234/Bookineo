@@ -1,8 +1,10 @@
+import type { ApiErrorResponse } from '@/types/api';
 import { jwtVerify } from 'jose';
+import type { Session } from 'next-auth';
 import { getServerSession } from 'next-auth/next';
 import { NextRequest } from 'next/server';
 import { authOptions } from './auth';
-import { prisma } from './prisma';
+import { prisma } from './database/client';
 
 // Types pour l'authentification
 export interface AuthenticatedUser {
@@ -11,20 +13,6 @@ export interface AuthenticatedUser {
   firstName?: string | null;
   lastName?: string | null;
 }
-
-export interface ApiError {
-  success: false;
-  message: string;
-  errors?: Record<string, string>;
-}
-
-export interface ApiSuccess<T = unknown> {
-  success: true;
-  data: T;
-  message?: string;
-}
-
-export type ApiResponse<T = unknown> = ApiSuccess<T> | ApiError;
 
 /**
  * Valide un token JWT et retourne les données utilisateur
@@ -76,13 +64,13 @@ export async function getAuthenticatedUser(
   }
 
   // Fallback sur NextAuth session (pour les routes web)
-  const session = await getServerSession(authOptions);
+  const session = (await getServerSession(authOptions)) as Session | null;
 
-  if (!session?.user) {
+  if (!session?.user?.id) {
     return null;
   }
 
-  const sessionUser = session.user as any;
+  const sessionUser = session.user;
 
   const user = await prisma.user.findUnique({
     where: { id: sessionUser.id },
@@ -102,7 +90,7 @@ export async function getAuthenticatedUser(
  */
 export async function requireAuth(
   request?: NextRequest
-): Promise<AuthenticatedUser | ApiError> {
+): Promise<AuthenticatedUser | ApiErrorResponse> {
   const user = await getAuthenticatedUser(request);
 
   if (!user) {
@@ -155,13 +143,13 @@ export function withAuth<T extends unknown[]>(
  */
 export function createErrorResponse(
   message: string,
-  errors?: Record<string, string>,
+  errors?: Record<string, string | string[]>,
   status: number = 400
 ): Response {
-  const response: ApiError = {
+  const response: ApiErrorResponse = {
     success: false,
     message,
-    errors,
+    errors: errors || {},
   };
 
   return new Response(JSON.stringify(response), {
@@ -178,7 +166,7 @@ export function createSuccessResponse<T>(
   message?: string,
   status: number = 200
 ): Response {
-  const response: ApiSuccess<T> = {
+  const response = {
     success: true,
     data,
     message,
@@ -188,50 +176,4 @@ export function createSuccessResponse<T>(
     status,
     headers: { 'Content-Type': 'application/json' },
   });
-}
-
-/**
- * Rate limiting simple (en mémoire - pour production utiliser Redis)
- */
-const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
-
-export function rateLimit(
-  identifier: string,
-  maxRequests: number = 5,
-  windowMs: number = 15 * 60 * 1000 // 15 minutes
-): boolean {
-  const now = Date.now();
-  const windowStart = now - windowMs;
-
-  const record = rateLimitMap.get(identifier);
-
-  if (!record || record.resetTime < windowStart) {
-    rateLimitMap.set(identifier, { count: 1, resetTime: now });
-    return true;
-  }
-
-  if (record.count >= maxRequests) {
-    return false;
-  }
-
-  record.count += 1;
-  return true;
-}
-
-/**
- * Extrait l'IP du client pour le rate limiting
- */
-export function getClientIP(request: NextRequest): string {
-  const forwarded = request.headers.get('x-forwarded-for');
-  const realIP = request.headers.get('x-real-ip');
-
-  if (forwarded) {
-    return forwarded.split(',')[0].trim();
-  }
-
-  if (realIP) {
-    return realIP;
-  }
-
-  return 'unknown';
 }
