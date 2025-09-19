@@ -25,3 +25,8 @@
   margin-left: 6px;
   line-height: normal;
 }
+.Card {
+  scroll-snap-align: start;
+  grid-row: span 3;
+  display: grid;
+}
