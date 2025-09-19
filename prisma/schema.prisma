@@ -28,6 +28,7 @@ model User {
   rentals    Rental[]
   sentMessages Message[]   @relation("MessageSender")
   receivedMessages Message[] @relation("MessageReceiver")
+  cart       Cart?
 
   @@map("users")
 }
@@ -58,6 +59,7 @@ model Book {
   owner       User?     @relation("BookOwner", fields: [ownerId], references: [id], onDelete: Cascade)
   ownerId     String?   // Optionnel pour les livres importés
   rentals     Rental[]
+  cartItems   CartItem[]
 
   @@map("books")
 }
@@ -93,6 +95,31 @@ model Message {
   receiverId String
 
   @@map("messages")
+}
+
+model Cart {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     CartItem[]
+  
+  @@map("carts")
+}
+
+model CartItem {
+  id       String   @id @default(cuid())
+  cartId   String
+  bookId   String
+  addedAt  DateTime @default(now())
+  
+  cart     Cart   @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  book     Book   @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  
+  @@unique([cartId, bookId]) // Empêche les doublons
+  @@map("cart_items")
 }
 
 enum BookStatus {

@@ -1,5 +1,8 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { use } from 'react';
+import Image from 'next/image';
+import AddToCartButton from '@/components/AddToCartButton';
 
 type Book = {
   id: string;
@@ -11,8 +14,6 @@ type Book = {
   price: number;
   imgUrl?: string;
 };
-import { use } from 'react';
-import Image from 'next/image';
 
 export default function ProduitPage({ params }: { params: { id: string } }) {
   const { id } = use(params as unknown as Promise<{ id: string }>);
@@ -119,12 +120,12 @@ export default function ProduitPage({ params }: { params: { id: string } }) {
             </div>
           </div>
           <p className="mt-2 text-lg font-bold">Prix total : {totalPrice} €</p>
-          <button
-            className="mt-6 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
-            disabled
-          >
-            Ajouter au panier
-          </button>
+          <AddToCartButton
+            bookId={book.id}
+            size="lg"
+            variant="primary"
+            className="mt-6"
+          />
         </div>
       </div>
     </div>
