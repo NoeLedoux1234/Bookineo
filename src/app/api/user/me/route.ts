@@ -1,43 +1,63 @@
-import {
-  createErrorResponse,
-  createSuccessResponse,
-  getAuthenticatedUser,
-} from '@/lib/AuthUtils';
-import { NextRequest } from 'next/server';
+import { updateUserSchema } from '@/lib/validation/schemas';
+import type { AuthenticatedRequest } from '@/middlewares/auth';
+import { withAuthAndErrorHandler } from '@/middlewares/errorHandler';
+import { userService } from '@/services/UserService';
+import { NextResponse } from 'next/server';
 
-export async function GET(request: NextRequest) {
-  try {
-    const user = await getAuthenticatedUser(request);
+export const GET = withAuthAndErrorHandler(
+  async (request: AuthenticatedRequest) => {
+    const userDetails = await userService.getUserById(request.user.id);
 
-    if (!user) {
-      return createErrorResponse(
-        'Utilisateur non authentifié',
-        { auth: 'Session expirée ou invalide' },
-        401
-      );
-    }
-
-    return createSuccessResponse(
-      {
+    return NextResponse.json({
+      success: true,
+      data: {
         user: {
-          id: user.id,
-          email: user.email,
-          firstName: user.firstName,
-          lastName: user.lastName,
+          id: userDetails.id,
+          email: userDetails.email,
+          firstName: userDetails.firstName,
+          lastName: userDetails.lastName,
+          birthDate: userDetails.birthDate,
+          createdAt: userDetails.createdAt,
+          updatedAt: userDetails.updatedAt,
           fullName:
-            user.firstName && user.lastName
-              ? `${user.firstName} ${user.lastName}`
-              : user.firstName || user.email,
+            userDetails.firstName && userDetails.lastName
+              ? `${userDetails.firstName} ${userDetails.lastName}`
+              : userDetails.firstName || userDetails.email,
         },
       },
-      'Données utilisateur récupérées'
-    );
-  } catch (error) {
-    console.error('Erreur récupération utilisateur:', error);
-    return createErrorResponse(
-      'Erreur interne du serveur',
-      { server: 'Impossible de récupérer les données utilisateur' },
-      500
-    );
+      message: 'Données utilisateur récupérées',
+    });
   }
-}
+);
+
+export const PUT = withAuthAndErrorHandler(
+  async (request: AuthenticatedRequest) => {
+    const body = await request.json();
+    const validatedData = updateUserSchema.parse(body);
+
+    const updatedUser = await userService.updateUser(
+      request.user.id,
+      validatedData
+    );
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        user: {
+          id: updatedUser.id,
+          email: updatedUser.email,
+          firstName: updatedUser.firstName,
+          lastName: updatedUser.lastName,
+          birthDate: updatedUser.birthDate,
+          createdAt: updatedUser.createdAt,
+          updatedAt: updatedUser.updatedAt,
+          fullName:
+            updatedUser.firstName && updatedUser.lastName
+              ? `${updatedUser.firstName} ${updatedUser.lastName}`
+              : updatedUser.firstName || updatedUser.email,
+        },
+      },
+      message: 'Profil mis à jour avec succès',
+    });
+  }
+);
