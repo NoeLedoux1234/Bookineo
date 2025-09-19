@@ -107,7 +107,11 @@ class CartRepository {
   /**
    * Ajoute un livre au panier
    */
-  async addItem(cartId: string, bookId: string): Promise<CartItem> {
+  async addItem(
+    cartId: string,
+    bookId: string,
+    userId?: string
+  ): Promise<CartItem> {
     try {
       // Vérifier que le livre n'est pas déjà dans le panier
       const existingItem = await prisma.cartItem.findUnique({
@@ -126,7 +130,7 @@ class CartRepository {
       // Vérifier que le livre est disponible
       const book = await prisma.book.findUnique({
         where: { id: bookId },
-        select: { status: true, title: true },
+        select: { status: true, title: true, ownerId: true },
       });
 
       if (!book) {
@@ -135,6 +139,13 @@ class CartRepository {
 
       if (book.status !== 'AVAILABLE') {
         throw new Error(`Le livre "${book.title}" n'est pas disponible`);
+      }
+
+      // Vérifier que l'utilisateur n'essaie pas d'ajouter son propre livre
+      if (userId && book.ownerId === userId) {
+        throw new Error(
+          'Vous ne pouvez pas ajouter votre propre livre au panier'
+        );
       }
 
       // Ajouter l'item au panier

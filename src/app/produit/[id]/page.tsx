@@ -1,8 +1,8 @@
 'use client';
-import { useState, useEffect } from 'react';
-import { use } from 'react';
-import Image from 'next/image';
 import AddToCartButton from '@/components/AddToCartButton';
+import { useSession } from 'next-auth/react';
+import Image from 'next/image';
+import { use, useEffect, useState } from 'react';
 
 type Book = {
   id: string;
@@ -13,10 +13,18 @@ type Book = {
   description?: string;
   price: number;
   imgUrl?: string;
+  ownerId?: string;
+  owner?: {
+    id: string;
+    firstName?: string;
+    lastName?: string;
+    email: string;
+  };
 };
 
 export default function ProduitPage({ params }: { params: { id: string } }) {
   const { id } = use(params as unknown as Promise<{ id: string }>);
+  const { data: session } = useSession();
   const [book, setBook] = useState<Book | null>(null);
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
@@ -34,6 +42,11 @@ export default function ProduitPage({ params }: { params: { id: string } }) {
   }, [id]);
 
   if (loading || !book) return <div>Chargement...</div>;
+
+  // Vérifier si l'utilisateur connecté est le propriétaire du livre
+  const userId = (session?.user as any)?.id;
+  const isOwner =
+    userId && (book.ownerId === userId || book.owner?.id === userId);
 
   const pricePerDay = book.price;
   // Calcul du nombre de jours entre startDate et endDate
@@ -120,12 +133,27 @@ export default function ProduitPage({ params }: { params: { id: string } }) {
             </div>
           </div>
           <p className="mt-2 text-lg font-bold">Prix total : {totalPrice} €</p>
-          <AddToCartButton
-            bookId={book.id}
-            size="lg"
-            variant="primary"
-            className="mt-6"
-          />
+
+          {isOwner ? (
+            <div className="mt-6">
+              <button
+                disabled
+                className="w-full bg-gray-400 text-gray-700 py-3 px-6 rounded-lg font-medium cursor-not-allowed opacity-60"
+              >
+                🚫 Vous ne pouvez pas louer votre propre livre
+              </button>
+              <p className="text-sm text-gray-500 mt-2 text-center">
+                Ce livre vous appartient
+              </p>
+            </div>
+          ) : (
+            <AddToCartButton
+              bookId={book.id}
+              size="lg"
+              variant="primary"
+              className="mt-6"
+            />
+          )}
         </div>
       </div>
     </div>
