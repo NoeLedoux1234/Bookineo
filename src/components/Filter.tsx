@@ -8,7 +8,6 @@ export type FilterProps = {
   type: FilterType;
   order: FilterOrder;
   onChange: (type: FilterType, order: FilterOrder) => void;
-  // Add new filter callbacks for demo
   onSearchTitle?: (value: string) => void;
   onStatusChange?: (value: string) => void;
   onCategoryChange?: (value: string) => void;
@@ -90,7 +89,7 @@ export default function Filter({
   }, [localAuthor]);
 
   return (
-    <div className="fixed left-0 top-0 h-screen w-72 bg-white shadow-lg flex flex-col p-6 z-20">
+    <div className="fixed left-0 top-0 h-screen w-72 bg-white shadow-lg flex flex-col p-6 z-20 CustomFilter">
       <form
         className="flex flex-col gap-6 flex-1"
         onSubmit={(e) => {

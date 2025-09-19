@@ -38,7 +38,7 @@ export default function Header({ userName }: HeaderProps) {
     .toUpperCase();
 
   return (
-    <header className="w-full bg-white border-b border-gray-200">
+    <header className="w-full bg-white border-b border-gray-200 CustomHeader">
       <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-md bg-blue-600 flex items-center justify-center text-white font-bold">

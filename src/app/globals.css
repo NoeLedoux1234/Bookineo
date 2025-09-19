@@ -50,3 +50,22 @@ body {
   display: grid;
   grid-template-rows: subgrid;
 }
+.CustomHeader {
+  position: sticky;
+  top: 0;
+  z-index: 99;
+}
+.CustomFilter {
+  top: 64px;
+}
+@media screen and (max-width: 1200px) {
+  aside:has(.CustomFilter) {
+    top: 64px;
+  }
+  .CustomFilter {
+    padding: 0;
+    position: static;
+    box-shadow: none;
+    max-width: 100%;
+  }
+}
