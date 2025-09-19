@@ -65,6 +65,7 @@ const querySchema = z.object({
       'year',
       'category',
       'price',
+      'stars',
       'status',
       'createdAt',
       'updatedAt',
