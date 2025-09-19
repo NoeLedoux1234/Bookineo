@@ -4,23 +4,23 @@ import Image from 'next/image';
 import styles from './CardStars.module.css';
 
 export type BookCardProps = {
+  id: string;
   image: string;
   title: string;
   author: string;
   rating: number;
   description: string;
   genre: string;
-  onAddToCart?: () => void;
 };
 
 export default function Card({
+  id,
   image,
   title,
   author,
   rating,
   description,
   genre,
-  onAddToCart,
 }: BookCardProps) {
   const maxStars = 5;
   const percent = Math.max(0, Math.min(1, rating / maxStars)) * 100;
@@ -49,10 +49,12 @@ export default function Card({
       </div>
       <p className="text-sm text-gray-700 line-clamp-3">{description}</p>
       <button
-        onClick={onAddToCart}
-        className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
+        onClick={() => {
+          window.location.href = `/produit/${id}`;
+        }}
+        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
       >
-        Ajouter au panier
+        Voir plus
       </button>
     </div>
   );
