@@ -117,13 +117,13 @@ export default function HomePage(): JSX.Element {
               books.map((book) => (
                 <Card
                   key={book.id}
+                  id={book.id}
                   image={book.imgUrl || '/file.svg'}
                   title={book.title}
                   author={book.author}
                   rating={book.stars ?? 0}
                   description={book.price ? `${book.price} €` : ''}
                   genre={book.categoryName || 'Livre'}
-                  onAddToCart={() => alert(`Ajouté au panier : ${book.title}`)}
                 />
               ))
             )}
