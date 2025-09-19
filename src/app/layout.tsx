@@ -1,4 +1,5 @@
 import ClientHeader from '@/components/ClientHeader';
+import Chatbot from '@/components/Chatbot';
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { Providers } from './providers';
@@ -32,6 +33,7 @@ export default function RootLayout({
         <Providers>
           <ClientHeader />
           {children}
+          <Chatbot />
         </Providers>
       </body>
     </html>
