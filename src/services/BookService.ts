@@ -16,7 +16,7 @@ export interface CreateBookData {
   title: string;
   author: string;
   categoryName?: string;
-  categoryId: number;
+  categoryId?: number;
   price: number;
   imgUrl?: string;
   ownerId?: string;
@@ -111,8 +111,19 @@ export class BookService {
     data: CreateBookData,
     creatorId?: string
   ): Promise<BookWithOwner> {
+    // S'assurer que categoryId est défini
+    if (!data.categoryId) {
+      throw new ValidationError('categoryId est requis', {});
+    }
+
     // Validation des données
-    this.validateBookData(data);
+    this.validateBookData({
+      title: data.title,
+      author: data.author,
+      categoryName: data.categoryName,
+      categoryId: data.categoryId,
+      price: data.price,
+    });
 
     // Vérifier les doublons (titre + auteur)
     const existingBooks = await bookRepository.findBooksWithFilters({
@@ -131,7 +142,7 @@ export class BookService {
         title: data.title.trim(),
         author: data.author.trim(),
         categoryName: data.categoryName?.trim(),
-        categoryId: data.categoryId,
+        categoryId: data.categoryId as number,
         price: data.price,
         imgUrl: data.imgUrl,
         asin: data.asin,

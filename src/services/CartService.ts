@@ -72,7 +72,7 @@ export class CartService {
       const cart = await cartRepository.findOrCreateByUserId(userId);
 
       // Ajouter le livre
-      await cartRepository.addItem(cart.id, bookId);
+      await cartRepository.addItem(cart.id, bookId, userId);
     } catch (error) {
       if (error instanceof Error) {
         if (error.message.includes('déjà dans votre panier')) {
@@ -83,6 +83,9 @@ export class CartService {
         }
         if (error.message.includes('introuvable')) {
           throw AppError.notFound(error.message);
+        }
+        if (error.message.includes('votre propre livre')) {
+          throw AppError.badRequest(error.message);
         }
       }
       throw AppError.internal("Erreur lors de l'ajout au panier");

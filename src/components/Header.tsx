@@ -100,6 +100,14 @@ export default function Header({ userName }: HeaderProps) {
                 </li>
                 <li>
                   <Link
+                    href="/my-sales"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                  >
+                    Mes Ventes
+                  </Link>
+                </li>
+                <li>
+                  <Link
                     href="/messages"
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center justify-between"
                   >

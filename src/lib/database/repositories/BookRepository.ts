@@ -11,6 +11,7 @@ export interface BookFilter {
   priceMax?: number;
   year?: number;
   hasOwner?: boolean;
+  ownerId?: string;
 }
 
 export interface BookWithOwner extends Book {
@@ -90,6 +91,7 @@ export class BookRepository extends BaseRepository<
             ? { ownerId: { not: null } }
             : { ownerId: null }
           : {},
+        filters.ownerId ? { ownerId: filters.ownerId } : {},
 
         // Filtres de prix
         filters.priceMin ? { price: { gte: filters.priceMin } } : {},
@@ -278,6 +280,7 @@ export class BookRepository extends BaseRepository<
             ? { ownerId: { not: null } }
             : { ownerId: null }
           : {},
+        filters.ownerId ? { ownerId: filters.ownerId } : {},
         filters.priceMin ? { price: { gte: filters.priceMin } } : {},
         filters.priceMax ? { price: { lte: filters.priceMax } } : {},
       ],
