@@ -80,7 +80,7 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
     async session({ session, token }: { session: any; token: any }) {
-      if (token) {
+      if (token && session?.user) {
         // Vérifier que l'utilisateur existe toujours en base
         const userExists = await prisma.user.findUnique({
           where: { id: token.id },

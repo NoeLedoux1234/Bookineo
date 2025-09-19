@@ -56,7 +56,10 @@ export const changePasswordSchema = z.object({
 export const updateUserSchema = z.object({
   firstName: nameSchema.optional(),
   lastName: nameSchema.optional(),
-  birthDate: dateSchema.optional(),
+  birthDate: z
+    .string()
+    .optional()
+    .transform((date) => date || undefined),
 });
 
 export const userFilterSchema = z.object({
@@ -113,8 +116,8 @@ export const paginationSchema = z.object({
   sortOrder: z.enum(['asc', 'desc']).optional().default('desc'),
 });
 
-// Schémas pour les livres (pour plus tard)
-export const bookSchema = z.object({
+// Schémas pour les livres
+export const createBookSchema = z.object({
   title: z
     .string()
     .min(1, 'Titre requis')
@@ -125,19 +128,90 @@ export const bookSchema = z.object({
     .min(1, 'Auteur requis')
     .max(100, "Nom d'auteur trop long")
     .transform((author) => author.trim()),
-  year: z
-    .number()
-    .min(1000, 'Année invalide')
-    .max(new Date().getFullYear() + 1, 'Année dans le futur'),
-  category: z
-    .string()
-    .min(1, 'Catégorie requise')
-    .max(50, 'Catégorie trop longue')
-    .transform((category) => category.trim()),
+  categoryName: z.string().max(50, 'Maximum 50 caractères').optional(),
+  categoryId: z.number().int().min(1, "L'ID de catégorie est requis"),
   price: z
     .number()
     .min(0, 'Prix ne peut pas être négatif')
     .max(10000, 'Prix trop élevé'),
+  imgUrl: z.string().url('URL invalide').optional().or(z.literal('')),
+  asin: z.string().optional(),
+  soldBy: z.string().optional(),
+  productURL: z.string().url('URL invalide').optional().or(z.literal('')),
+  stars: z.number().min(0).max(5).optional(),
+  reviews: z.number().int().min(0).optional(),
+  isKindleUnlimited: z.boolean().optional(),
+  isBestSeller: z.boolean().optional(),
+  isEditorsPick: z.boolean().optional(),
+  isGoodReadsChoice: z.boolean().optional(),
+  publishedDate: z.string().optional(),
+});
+
+export const updateBookSchema = createBookSchema.partial();
+
+export const bookQuerySchema = paginationSchema.extend({
+  status: z.enum(['AVAILABLE', 'RENTED']).optional(),
+  category: z.string().optional(),
+  author: z.string().optional(),
+  priceMin: z
+    .string()
+    .optional()
+    .transform((val) => (val ? parseFloat(val) : undefined))
+    .pipe(z.number().min(0).optional()),
+  priceMax: z
+    .string()
+    .optional()
+    .transform((val) => (val ? parseFloat(val) : undefined))
+    .pipe(z.number().min(0).optional()),
+  hasOwner: z
+    .string()
+    .optional()
+    .transform((val) =>
+      val === 'true' ? true : val === 'false' ? false : undefined
+    ),
+  sortBy: z
+    .enum([
+      'title',
+      'author',
+      'categoryName',
+      'price',
+      'createdAt',
+      'updatedAt',
+    ])
+    .optional(),
+});
+
+// Schémas pour les locations
+export const createRentalSchema = z.object({
+  bookId: idSchema,
+  renterId: idSchema,
+  duration: z
+    .number()
+    .int()
+    .min(1, 'Durée minimum: 1 jour')
+    .max(365, 'Durée maximum: 365 jours'),
+  comment: z.string().optional(),
+  startDate: z.string().datetime().optional(),
+});
+
+export const updateRentalSchema = z.object({
+  returnDate: z.string().datetime().optional(),
+  status: z.enum(['ACTIVE', 'COMPLETED', 'CANCELLED']).optional(),
+  comment: z.string().optional(),
+  action: z.enum(['return', 'cancel']).optional(),
+});
+
+export const rentalQuerySchema = paginationSchema.extend({
+  status: z.enum(['ACTIVE', 'COMPLETED', 'CANCELLED']).optional(),
+  bookId: idSchema.optional(),
+  renterId: idSchema.optional(),
+  startDateFrom: z.string().optional(),
+  startDateTo: z.string().optional(),
+  endDateFrom: z.string().optional(),
+  endDateTo: z.string().optional(),
+  sortBy: z
+    .enum(['startDate', 'endDate', 'duration', 'status', 'createdAt'])
+    .optional(),
 });
 
 // Types inférés des schémas
@@ -149,4 +223,13 @@ export type UserFilterInput = z.infer<typeof userFilterSchema>;
 export type SendMessageInput = z.infer<typeof sendMessageSchema>;
 export type MessageFilterInput = z.infer<typeof messageFilterSchema>;
 export type PaginationInput = z.infer<typeof paginationSchema>;
-export type BookInput = z.infer<typeof bookSchema>;
+
+// Types pour les livres
+export type CreateBookInput = z.infer<typeof createBookSchema>;
+export type UpdateBookInput = z.infer<typeof updateBookSchema>;
+export type BookQueryInput = z.infer<typeof bookQuerySchema>;
+
+// Types pour les locations
+export type CreateRentalInput = z.infer<typeof createRentalSchema>;
+export type UpdateRentalInput = z.infer<typeof updateRentalSchema>;
+export type RentalQueryInput = z.infer<typeof rentalQuerySchema>;

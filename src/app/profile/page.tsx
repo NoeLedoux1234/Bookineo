@@ -34,14 +34,14 @@ export default function ProfilePage() {
 
   const fetchProfile = async () => {
     try {
-      const response = await fetch('/api/user/profile');
+      const response = await fetch('/api/user/me');
       if (response.ok) {
         const data = await response.json();
-        setProfile(data.profile);
-        setFirstName(data.profile.firstName || '');
-        setLastName(data.profile.lastName || '');
+        setProfile(data.data.user);
+        setFirstName(data.data.user.firstName || '');
+        setLastName(data.data.user.lastName || '');
         setBirthDate(
-          data.profile.birthDate ? data.profile.birthDate.split('T')[0] : ''
+          data.data.user.birthDate ? data.data.user.birthDate.split('T')[0] : ''
         );
       } else {
         setMessage({
@@ -67,7 +67,7 @@ export default function ProfilePage() {
       if (birthDate && birthDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
         birthDateToSend = new Date(birthDate).toISOString();
       }
-      const response = await fetch('/api/user/profile', {
+      const response = await fetch('/api/user/me', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -80,7 +80,7 @@ export default function ProfilePage() {
       const data = await response.json();
 
       if (response.ok) {
-        setProfile(data.profile);
+        setProfile(data.data.user);
         setEditing(false);
         setMessage({
           type: 'success',

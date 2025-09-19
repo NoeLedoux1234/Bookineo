@@ -9,6 +9,7 @@ const updateRentalSchema = z.object({
   returnDate: z.string().datetime().optional(),
   status: z.enum(['ACTIVE', 'COMPLETED', 'CANCELLED']).optional(),
   comment: z.string().optional(),
+  action: z.enum(['return', 'cancel']).optional(),
 });
 
 export async function GET(
@@ -70,20 +71,34 @@ export async function PUT(
     const body = await request.json();
     const validatedData = updateRentalSchema.parse(body);
 
-    const updateData = {
-      ...validatedData,
-      returnDate: validatedData.returnDate
-        ? new Date(validatedData.returnDate)
-        : undefined,
-    };
-
     const { id } = await params;
-    const rental = await rentalService.updateRental(id, updateData);
+    let rental;
+    let message = 'Location mise à jour avec succès';
+
+    // Gérer les actions spécifiques
+    if (validatedData.action === 'return') {
+      rental = await rentalService.returnBook(id, validatedData.comment);
+      message = 'Livre retourné avec succès';
+    } else if (validatedData.action === 'cancel') {
+      rental = await rentalService.cancelRental(id, validatedData.comment);
+      message = 'Location annulée avec succès';
+    } else {
+      // Mise à jour normale
+      const updateData = {
+        ...validatedData,
+        returnDate: validatedData.returnDate
+          ? new Date(validatedData.returnDate)
+          : undefined,
+      };
+      // Exclure l'action des données de mise à jour
+      delete updateData.action;
+      rental = await rentalService.updateRental(id, updateData);
+    }
 
     return NextResponse.json({
       success: true,
       data: rental,
-      message: 'Location mise à jour avec succès',
+      message,
     });
   } catch (error) {
     console.error('Erreur lors de la mise à jour de la location:', error);
