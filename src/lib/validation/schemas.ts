@@ -215,6 +215,29 @@ export const rentalQuerySchema = paginationSchema.extend({
     .optional(),
 });
 
+// Schémas pour le panier
+export const addToCartSchema = z.object({
+  bookId: idSchema,
+});
+
+export const removeFromCartSchema = z.object({
+  bookId: idSchema,
+});
+
+export const cartQuerySchema = z.object({
+  includeDetails: z.boolean().optional().default(true),
+});
+
+export const checkoutCartSchema = z.object({
+  duration: z
+    .number()
+    .int()
+    .min(1, 'Durée minimum: 1 jour')
+    .max(365, 'Durée maximum: 365 jours'),
+  comment: z.string().max(500, 'Commentaire trop long').optional(),
+  startDate: z.string().datetime().optional(),
+});
+
 // Types inférés des schémas
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
@@ -234,3 +257,9 @@ export type BookQueryInput = z.infer<typeof bookQuerySchema>;
 export type CreateRentalInput = z.infer<typeof createRentalSchema>;
 export type UpdateRentalInput = z.infer<typeof updateRentalSchema>;
 export type RentalQueryInput = z.infer<typeof rentalQuerySchema>;
+
+// Types pour le panier
+export type AddToCartInput = z.infer<typeof addToCartSchema>;
+export type RemoveFromCartInput = z.infer<typeof removeFromCartSchema>;
+export type CartQueryInput = z.infer<typeof cartQuerySchema>;
+export type CheckoutCartInput = z.infer<typeof checkoutCartSchema>;
