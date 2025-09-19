@@ -250,7 +250,7 @@ export default function Filter({
         </div>
         <button
           type="submit"
-          className="mt-6 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+          className="FilterBTN mt-6 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
         >
           Valider
         </button>

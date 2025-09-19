@@ -178,11 +178,11 @@ export default function HomePage(): JSX.Element {
         />
       </aside>
 
-      <div className="flex-1 flex flex-col items-center justify-center p-6 md:ml-72">
+      <div className="flex-1 flex flex-col items-center justify-center p-6">
         {loading ? (
           <div className="text-center py-8">Chargement des livres...</div>
         ) : (
-          <div className="w-full Subgrid">
+          <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 container">
             {books.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
                 Aucun livre trouvé.
