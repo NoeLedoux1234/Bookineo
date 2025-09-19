@@ -22,6 +22,17 @@ export default function HomePage(): JSX.Element {
   const [totalPages, setTotalPages] = React.useState(1);
   const [loading, setLoading] = React.useState(false);
 
+  // Filter states
+  const [searchTitle, setSearchTitle] = React.useState('');
+  const [status, setStatus] = React.useState('');
+  const [category, setCategory] = React.useState('');
+  const [author, setAuthor] = React.useState('');
+  const [priceMin, setPriceMin] = React.useState('');
+  const [priceMax, setPriceMax] = React.useState('');
+
+  // Show all books by default, only apply filters after 'Valider'
+  const [filtersApplied, setFiltersApplied] = React.useState(false);
+
   React.useEffect(() => {
     async function fetchBooks() {
       setLoading(true);
@@ -29,9 +40,18 @@ export default function HomePage(): JSX.Element {
         const params = new URLSearchParams({
           page: page.toString(),
           limit: '9',
-          sortBy: filterType,
+          sortBy: filterType === 'stars' ? 'stars' : filterType,
           sortOrder: filterOrder,
         });
+        // Only add filters if filtersApplied
+        if (filtersApplied) {
+          if (searchTitle) params.append('search', searchTitle);
+          if (status) params.append('status', status);
+          if (category) params.append('category', category);
+          if (author) params.append('author', author);
+          if (priceMin) params.append('priceMin', priceMin);
+          if (priceMax) params.append('priceMax', priceMax);
+        }
         const res = await fetch(`/api/books?${params.toString()}`);
         const json = await res.json();
         if (json.success && json.data) {
@@ -46,41 +66,67 @@ export default function HomePage(): JSX.Element {
       }
     }
     fetchBooks();
-  }, [filterType, filterOrder, page]);
+  }, [
+    filtersApplied,
+    filterType,
+    filterOrder,
+    page,
+    searchTitle,
+    status,
+    category,
+    author,
+    priceMin,
+    priceMax,
+  ]);
+
+  // Handler for 'Valider' button
+  const handleValidate = () => {
+    setFiltersApplied(true);
+    setPage(1);
+  };
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-6">
-      <h1 className="text-4xl font-bold text-gray-800 mb-6">
-        Bienvenue sur Bookineo
-      </h1>
-      <div className="w-full mb-8">
-        <Filter
-          type={filterType}
-          order={filterOrder}
-          onChange={(type, order) => {
-            setFilterType(type);
-            setFilterOrder(order);
-            setPage(1);
-          }}
-        />
-      </div>
-      <div className="w-full flex flex-col items-center">
+    <main className="min-h-screen flex bg-gray-50">
+      <Filter
+        type={filterType}
+        order={filterOrder}
+        onChange={(type, order) => {
+          setFilterType(type);
+          setFilterOrder(order);
+        }}
+        onSearchTitle={setSearchTitle}
+        onStatusChange={setStatus}
+        onCategoryChange={setCategory}
+        onAuthorChange={setAuthor}
+        onPriceChange={(min, max) => {
+          setPriceMin(min);
+          setPriceMax(max);
+        }}
+        onValidate={handleValidate}
+      />
+      <div className="flex-1 flex flex-col items-center justify-center p-6 ml-72">
         {loading ? (
           <div className="text-center py-8">Chargement des livres...</div>
         ) : (
           <div className="w-full Subgrid">
-            {books.map((book) => (
-              <Card
-                key={book.id}
-                image={book.imgUrl || '/file.svg'}
-                title={book.title}
-                author={book.author}
-                rating={book.stars ?? 0}
-                description={book.price ? `${book.price} €` : ''}
-                genre={book.categoryName || 'Livre'}
-                onAddToCart={() => alert(`Ajouté au panier : ${book.title}`)}
-              />
-            ))}
+            {books.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                Aucun livre trouvé.
+              </div>
+            ) : (
+              books.map((book) => (
+                <Card
+                  key={book.id}
+                  image={book.imgUrl || '/file.svg'}
+                  title={book.title}
+                  author={book.author}
+                  rating={book.stars ?? 0}
+                  description={book.price ? `${book.price} €` : ''}
+                  genre={book.categoryName || 'Livre'}
+                  onAddToCart={() => alert(`Ajouté au panier : ${book.title}`)}
+                />
+              ))
+            )}
           </div>
         )}
         <div className="flex justify-center items-center gap-2 mt-8">
