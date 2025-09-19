@@ -177,6 +177,7 @@ export const bookQuerySchema = paginationSchema.extend({
       'price',
       'createdAt',
       'updatedAt',
+      'stars', // Ajouté pour permettre le tri par note
     ])
     .optional(),
 });
