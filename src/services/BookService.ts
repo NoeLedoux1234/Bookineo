@@ -15,41 +15,61 @@ import type { PaginatedResponse, PaginationParams } from '@/types/api';
 export interface CreateBookData {
   title: string;
   author: string;
-  year?: number | null;
-  category: string;
+  categoryName?: string;
+  categoryId: number;
   price: number;
-  description?: string;
-  imageUrl?: string;
+  imgUrl?: string;
   ownerId?: string;
   asin?: string;
-  isbn10?: string;
+  soldBy?: string;
+  productURL?: string;
+  stars?: number;
+  reviews?: number;
+  isKindleUnlimited?: boolean;
+  isBestSeller?: boolean;
+  isEditorsPick?: boolean;
+  isGoodReadsChoice?: boolean;
+  publishedDate?: string;
 }
 
 export interface UpdateBookData {
   title?: string;
   author?: string;
-  year?: number | null;
-  category?: string;
+  categoryName?: string;
+  categoryId?: number;
   price?: number;
-  description?: string;
-  imageUrl?: string;
+  imgUrl?: string;
   status?: BookStatus;
   ownerId?: string | null;
+  asin?: string;
+  soldBy?: string;
+  productURL?: string;
+  stars?: number;
+  reviews?: number;
+  isKindleUnlimited?: boolean;
+  isBestSeller?: boolean;
+  isEditorsPick?: boolean;
+  isGoodReadsChoice?: boolean;
+  publishedDate?: string;
 }
 
 export interface BookExportData {
   titre: string;
   auteur: string;
-  annee: number | null;
   categorie: string;
   prix: number;
   statut: string;
   proprietaire: string;
   email_proprietaire: string;
   date_creation: string;
-  description: string;
-  rating: string;
+  asin: string;
+  vendu_par: string;
+  etoiles: number;
   nombre_avis: number;
+  kindle_unlimited: boolean;
+  bestseller: boolean;
+  choix_editeur: boolean;
+  choix_goodreads: boolean;
 }
 
 export class BookService {
@@ -110,13 +130,20 @@ export class BookService {
       const createdBook = await bookRepository.create({
         title: data.title.trim(),
         author: data.author.trim(),
-        year: data.year,
-        category: data.category.trim(),
+        categoryName: data.categoryName?.trim(),
+        categoryId: data.categoryId,
         price: data.price,
-        description: data.description?.trim(),
-        imageUrl: data.imageUrl,
+        imgUrl: data.imgUrl,
         asin: data.asin,
-        isbn10: data.isbn10,
+        soldBy: data.soldBy,
+        productURL: data.productURL,
+        stars: data.stars,
+        reviews: data.reviews,
+        isKindleUnlimited: data.isKindleUnlimited || false,
+        isBestSeller: data.isBestSeller || false,
+        isEditorsPick: data.isEditorsPick || false,
+        isGoodReadsChoice: data.isGoodReadsChoice || false,
+        publishedDate: data.publishedDate,
         owner:
           data.ownerId || creatorId
             ? {
@@ -161,13 +188,15 @@ export class BookService {
     if (
       data.title ||
       data.author ||
-      data.category ||
+      data.categoryName ||
       data.price !== undefined
     ) {
       this.validateBookData({
         title: data.title || existingBook.title,
         author: data.author || existingBook.author,
-        category: data.category || existingBook.category,
+        categoryName:
+          data.categoryName || existingBook.categoryName || undefined,
+        categoryId: data.categoryId || existingBook.categoryId,
         price: data.price !== undefined ? data.price : existingBook.price,
       });
     }
@@ -176,15 +205,32 @@ export class BookService {
       const updatedBook = await bookRepository.updateById(id, {
         ...(data.title && { title: data.title.trim() }),
         ...(data.author && { author: data.author.trim() }),
-        ...(data.year !== undefined && { year: data.year }),
-        ...(data.category && { category: data.category.trim() }),
+        ...(data.categoryName && { categoryName: data.categoryName.trim() }),
+        ...(data.categoryId !== undefined && { categoryId: data.categoryId }),
         ...(data.price !== undefined && { price: data.price }),
-        ...(data.description !== undefined && {
-          description: data.description?.trim(),
-        }),
-        ...(data.imageUrl !== undefined && { imageUrl: data.imageUrl }),
+        ...(data.imgUrl !== undefined && { imgUrl: data.imgUrl }),
         ...(data.status && { status: data.status }),
         ...(data.ownerId !== undefined && { ownerId: data.ownerId }),
+        ...(data.asin !== undefined && { asin: data.asin }),
+        ...(data.soldBy !== undefined && { soldBy: data.soldBy }),
+        ...(data.productURL !== undefined && { productURL: data.productURL }),
+        ...(data.stars !== undefined && { stars: data.stars }),
+        ...(data.reviews !== undefined && { reviews: data.reviews }),
+        ...(data.isKindleUnlimited !== undefined && {
+          isKindleUnlimited: data.isKindleUnlimited,
+        }),
+        ...(data.isBestSeller !== undefined && {
+          isBestSeller: data.isBestSeller,
+        }),
+        ...(data.isEditorsPick !== undefined && {
+          isEditorsPick: data.isEditorsPick,
+        }),
+        ...(data.isGoodReadsChoice !== undefined && {
+          isGoodReadsChoice: data.isGoodReadsChoice,
+        }),
+        ...(data.publishedDate !== undefined && {
+          publishedDate: data.publishedDate,
+        }),
       });
 
       return (await bookRepository.findBookWithDetails(
@@ -298,8 +344,7 @@ export class BookService {
       return books.map((book) => ({
         titre: book.title,
         auteur: book.author,
-        annee: book.year,
-        categorie: book.category,
+        categorie: book.categoryName || '',
         prix: book.price,
         statut: book.status === 'AVAILABLE' ? 'Disponible' : 'Loué',
         proprietaire: book.owner
@@ -308,9 +353,14 @@ export class BookService {
           : 'Aucun',
         email_proprietaire: book.owner?.email || '',
         date_creation: book.createdAt.toISOString().split('T')[0],
-        description: book.description || '',
-        rating: book.rating || '',
-        nombre_avis: book.reviewsCount || 0,
+        asin: book.asin || '',
+        vendu_par: book.soldBy || '',
+        etoiles: book.stars || 0,
+        nombre_avis: book.reviews || 0,
+        kindle_unlimited: book.isKindleUnlimited,
+        bestseller: book.isBestSeller,
+        choix_editeur: book.isEditorsPick,
+        choix_goodreads: book.isGoodReadsChoice,
       }));
     } catch (error) {
       console.error("Erreur lors de l'export CSV:", error);
@@ -343,7 +393,8 @@ export class BookService {
   private validateBookData(data: {
     title: string;
     author: string;
-    category: string;
+    categoryName?: string;
+    categoryId: number;
     price: number;
   }): void {
     const errors: string[] = [];
@@ -360,10 +411,12 @@ export class BookService {
       errors.push("L'auteur ne peut pas dépasser 100 caractères");
     }
 
-    if (!data.category?.trim()) {
-      errors.push('La catégorie est requise');
-    } else if (data.category.length > 50) {
-      errors.push('La catégorie ne peut pas dépasser 50 caractères');
+    if (!data.categoryId) {
+      errors.push("L'ID de catégorie est requis");
+    }
+
+    if (data.categoryName && data.categoryName.length > 50) {
+      errors.push('Le nom de catégorie ne peut pas dépasser 50 caractères');
     }
 
     if (data.price === undefined || data.price === null) {

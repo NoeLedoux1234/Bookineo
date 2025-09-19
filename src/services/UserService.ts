@@ -120,8 +120,8 @@ export class UserService {
     await userRepository.updateById(id, { password: hashedPassword });
   }
 
-  // Rechercher des utilisateurs
-  async searchUsers(
+  // Récupérer tous les utilisateurs avec filtres et pagination
+  async getUsers(
     filter: UserFilter,
     pagination: PaginationParams
   ): Promise<PaginatedResponse<Omit<UserWithRelations, 'password'>>> {

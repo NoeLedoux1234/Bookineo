@@ -54,10 +54,22 @@ export interface AmazonBookData {
 export interface BookImportData {
   title: string;
   author: string;
-  year?: number | null;
-  category: string;
+  categoryName?: string;
+  categoryId?: number;
   price: number;
   asin?: string;
+  soldBy?: string;
+  imgUrl?: string;
+  productURL?: string;
+  stars?: number;
+  reviews?: number;
+  isKindleUnlimited?: boolean;
+  isBestSeller?: boolean;
+  isEditorsPick?: boolean;
+  isGoodReadsChoice?: boolean;
+  publishedDate?: string;
+  // Anciens champs pour compatibilité
+  category?: string;
   isbn10?: string;
   description?: string;
   imageUrl?: string;

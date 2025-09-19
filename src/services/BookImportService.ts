@@ -29,11 +29,11 @@ export class BookImportService {
         return null;
       }
 
-      // Extraire l'année à partir de différentes sources
-      let year: number | null = null;
-      if (amazonBook.timestamp) {
-        year = new Date(amazonBook.timestamp).getFullYear();
-      }
+      // Extraire l'année à partir de différentes sources (utilisée pour d'éventuelles validations futures)
+      // let year: number | null = null;
+      // if (amazonBook.timestamp) {
+      //   year = new Date(amazonBook.timestamp).getFullYear();
+      // }
 
       // Déterminer la catégorie principale
       const mainCategory =
@@ -56,10 +56,24 @@ export class BookImportService {
       return {
         title: amazonBook.title?.trim() || 'Unknown Title',
         author: amazonBook.brand?.trim() || 'Unknown Author',
-        year,
-        category: mainCategory,
+        categoryName: mainCategory,
+        categoryId: 1, // Default category ID
         price: amazonBook.final_price || 0,
         asin: amazonBook.asin,
+        soldBy: amazonBook.seller_name,
+        imgUrl: amazonBook.image_url,
+        productURL: amazonBook.url,
+        stars: amazonBook.rating ? parseFloat(amazonBook.rating) : undefined,
+        reviews: amazonBook.reviews_count,
+        isKindleUnlimited: false, // Default
+        isBestSeller:
+          amazonBook.best_sellers_rank &&
+          amazonBook.best_sellers_rank.length > 0,
+        isEditorsPick: false, // Default
+        isGoodReadsChoice: false, // Default
+        publishedDate: amazonBook.date_first_available || undefined,
+        // Anciens champs pour compatibilité
+        category: mainCategory,
         isbn10: amazonBook.ISBN10,
         description: amazonBook.description || undefined,
         imageUrl: amazonBook.image_url,
@@ -143,24 +157,20 @@ export class BookImportService {
           data: {
             title: book.title,
             author: book.author,
-            year: book.year,
-            category: book.category,
+            categoryName: book.categoryName,
+            categoryId: book.categoryId || 1,
             price: book.price,
             asin: book.asin,
-            isbn10: book.isbn10,
-            description: book.description,
-            imageUrl: book.imageUrl,
-            rating: book.rating,
-            reviewsCount: book.reviewsCount,
-            availability: book.availability,
-            format: book.format
-              ? JSON.parse(JSON.stringify(book.format))
-              : undefined,
-            categories: book.categories
-              ? JSON.parse(JSON.stringify(book.categories))
-              : undefined,
-            dimensions: book.dimensions,
-            weight: book.weight,
+            soldBy: book.soldBy,
+            imgUrl: book.imgUrl,
+            productURL: book.productURL,
+            stars: book.stars,
+            reviews: book.reviews,
+            isKindleUnlimited: book.isKindleUnlimited || false,
+            isBestSeller: book.isBestSeller || false,
+            isEditorsPick: book.isEditorsPick || false,
+            isGoodReadsChoice: book.isGoodReadsChoice || false,
+            publishedDate: book.publishedDate,
             // Pas de ownerId - les livres importés n'ont pas de propriétaire initial
           },
         });

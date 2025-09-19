@@ -69,12 +69,7 @@ export class BookRepository extends BaseRepository<
               OR: [
                 { title: { contains: filters.search, mode: 'insensitive' } },
                 { author: { contains: filters.search, mode: 'insensitive' } },
-                {
-                  description: {
-                    contains: filters.search,
-                    mode: 'insensitive',
-                  },
-                },
+                // Note: description field doesn't exist in current schema
               ],
             }
           : {},
@@ -82,12 +77,14 @@ export class BookRepository extends BaseRepository<
         // Filtres spécifiques
         filters.status ? { status: filters.status } : {},
         filters.category
-          ? { category: { contains: filters.category, mode: 'insensitive' } }
+          ? {
+              categoryName: { contains: filters.category, mode: 'insensitive' },
+            }
           : {},
         filters.author
           ? { author: { contains: filters.author, mode: 'insensitive' } }
           : {},
-        filters.year ? { year: filters.year } : {},
+        // Note: year field doesn't exist in current schema
         filters.hasOwner !== undefined
           ? filters.hasOwner
             ? { ownerId: { not: null } }
@@ -176,12 +173,14 @@ export class BookRepository extends BaseRepository<
    */
   async getUniqueCategories(): Promise<string[]> {
     const categories = await this.model.findMany({
-      select: { category: true },
-      distinct: ['category'],
-      orderBy: { category: 'asc' },
+      select: { categoryName: true },
+      distinct: ['categoryName'],
+      orderBy: { categoryName: 'asc' },
     });
 
-    return categories.map((cat) => cat.category).filter(Boolean);
+    return categories
+      .map((cat) => cat.categoryName)
+      .filter((name): name is string => Boolean(name));
   }
 
   /**
@@ -231,7 +230,7 @@ export class BookRepository extends BaseRepository<
       this.model.count({ where: { ownerId: { not: null } } }),
       this.model.count({ where: { ownerId: null } }),
       this.model
-        .groupBy({ by: ['category'], _count: true })
+        .groupBy({ by: ['categoryName'], _count: true })
         .then((results) => results.length),
       this.model
         .groupBy({ by: ['author'], _count: true })
@@ -260,23 +259,20 @@ export class BookRepository extends BaseRepository<
               OR: [
                 { title: { contains: filters.search, mode: 'insensitive' } },
                 { author: { contains: filters.search, mode: 'insensitive' } },
-                {
-                  description: {
-                    contains: filters.search,
-                    mode: 'insensitive',
-                  },
-                },
+                // Note: description field doesn't exist in current schema
               ],
             }
           : {},
         filters.status ? { status: filters.status } : {},
         filters.category
-          ? { category: { contains: filters.category, mode: 'insensitive' } }
+          ? {
+              categoryName: { contains: filters.category, mode: 'insensitive' },
+            }
           : {},
         filters.author
           ? { author: { contains: filters.author, mode: 'insensitive' } }
           : {},
-        filters.year ? { year: filters.year } : {},
+        // Note: year field doesn't exist in current schema
         filters.hasOwner !== undefined
           ? filters.hasOwner
             ? { ownerId: { not: null } }
@@ -320,6 +316,16 @@ export class BookRepository extends BaseRepository<
     return await this.model.update({
       where: { id: bookId },
       data: { ownerId: null },
+    });
+  }
+
+  /**
+   * Mettre à jour le statut d'un livre
+   */
+  async updateStatus(bookId: string, status: BookStatus): Promise<Book> {
+    return await this.model.update({
+      where: { id: bookId },
+      data: { status },
     });
   }
 }
