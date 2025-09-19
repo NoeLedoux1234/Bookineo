@@ -162,12 +162,12 @@ export class UserController extends BaseController {
         if (createdTo) filter.createdAt.to = new Date(createdTo);
       }
 
-      const result = await userService.searchUsers(filter, pagination);
+      const result = await userService.getUsers(filter, pagination);
 
       // Limiter les informations retournées pour la recherche publique
       const limitedResults = {
         ...result,
-        items: result.items.map((user) => ({
+        items: result.items.map((user: any) => ({
           id: user.id,
           firstName: user.firstName,
           lastName: user.lastName,

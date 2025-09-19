@@ -114,6 +114,7 @@ export interface UpdateMessageData {
 
 // Types pour les filtres spécifiques
 export interface UserFilter {
+  search?: string;
   email?: string;
   firstName?: string;
   lastName?: string;

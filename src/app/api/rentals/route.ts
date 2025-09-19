@@ -1,28 +1,20 @@
 import { authOptions } from '@/lib/auth';
-import type { BookFilter } from '@/lib/database/repositories/BookRepository';
 import { AppError } from '@/lib/errors/AppError';
-import { bookService } from '@/services/BookService';
+import { rentalService } from '@/services/RentalService';
 import { getServerSession } from 'next-auth/next';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 
-const createBookSchema = z.object({
-  title: z.string().min(1, 'Le titre est requis').max(200),
-  author: z.string().min(1, "L'auteur est requis").max(100),
-  categoryName: z.string().max(50).optional(),
-  categoryId: z.number().int().min(1, "L'ID de catégorie est requis"),
-  price: z.number().min(0, 'Le prix ne peut pas être négatif').max(10000),
-  imgUrl: z.string().url().optional().or(z.literal('')),
-  asin: z.string().optional(),
-  soldBy: z.string().optional(),
-  productURL: z.string().url().optional().or(z.literal('')),
-  stars: z.number().min(0).max(5).optional(),
-  reviews: z.number().int().min(0).optional(),
-  isKindleUnlimited: z.boolean().optional(),
-  isBestSeller: z.boolean().optional(),
-  isEditorsPick: z.boolean().optional(),
-  isGoodReadsChoice: z.boolean().optional(),
-  publishedDate: z.string().optional(),
+const createRentalSchema = z.object({
+  bookId: z.string().min(1, 'ID du livre requis'),
+  renterId: z.string().min(1, 'ID du locataire requis'),
+  duration: z
+    .number()
+    .int()
+    .min(1, "La durée doit être d'au moins 1 jour")
+    .max(365, 'La durée ne peut pas dépasser 365 jours'),
+  comment: z.string().optional(),
+  startDate: z.string().datetime().optional(),
 });
 
 const querySchema = z.object({
@@ -35,36 +27,18 @@ const querySchema = z.object({
     .optional()
     .transform((val) => (val ? Math.min(parseInt(val, 10), 100) : 20)),
   search: z.string().optional(),
-  status: z.enum(['AVAILABLE', 'RENTED']).optional(),
-  category: z.string().optional(),
-  author: z.string().optional(),
-  priceMin: z
-    .string()
-    .optional()
-    .transform((val) => (val ? parseFloat(val) : undefined)),
-  priceMax: z
-    .string()
-    .optional()
-    .transform((val) => (val ? parseFloat(val) : undefined)),
-  year: z
-    .string()
-    .optional()
-    .transform((val) => (val ? parseInt(val, 10) : undefined)),
-  hasOwner: z
-    .string()
-    .optional()
-    .transform((val) => {
-      if (val === 'true') return true;
-      if (val === 'false') return false;
-      return undefined;
-    }),
+  status: z.enum(['ACTIVE', 'COMPLETED', 'CANCELLED']).optional(),
+  bookId: z.string().optional(),
+  renterId: z.string().optional(),
+  startDateFrom: z.string().datetime().optional(),
+  startDateTo: z.string().datetime().optional(),
+  endDateFrom: z.string().datetime().optional(),
+  endDateTo: z.string().datetime().optional(),
   sortBy: z
     .enum([
-      'title',
-      'author',
-      'year',
-      'category',
-      'price',
+      'startDate',
+      'endDate',
+      'duration',
       'status',
       'createdAt',
       'updatedAt',
@@ -75,20 +49,36 @@ const querySchema = z.object({
 
 export async function GET(request: NextRequest) {
   try {
+    const session = (await getServerSession(authOptions)) as any;
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { success: false, message: 'Authentification requise' },
+        { status: 401 }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const queryObject = Object.fromEntries(searchParams.entries());
 
     const validatedQuery = querySchema.parse(queryObject);
 
-    const filters: BookFilter = {
+    const filters = {
       search: validatedQuery.search,
       status: validatedQuery.status,
-      category: validatedQuery.category,
-      author: validatedQuery.author,
-      priceMin: validatedQuery.priceMin,
-      priceMax: validatedQuery.priceMax,
-      year: validatedQuery.year,
-      hasOwner: validatedQuery.hasOwner,
+      bookId: validatedQuery.bookId,
+      renterId: validatedQuery.renterId,
+      startDateFrom: validatedQuery.startDateFrom
+        ? new Date(validatedQuery.startDateFrom)
+        : undefined,
+      startDateTo: validatedQuery.startDateTo
+        ? new Date(validatedQuery.startDateTo)
+        : undefined,
+      endDateFrom: validatedQuery.endDateFrom
+        ? new Date(validatedQuery.endDateFrom)
+        : undefined,
+      endDateTo: validatedQuery.endDateTo
+        ? new Date(validatedQuery.endDateTo)
+        : undefined,
     };
 
     const pagination = {
@@ -98,14 +88,11 @@ export async function GET(request: NextRequest) {
       sortOrder: validatedQuery.sortOrder,
     };
 
-    const result = await bookService.getBooks(filters, pagination);
+    const result = await rentalService.getRentals(filters, pagination);
 
-    return NextResponse.json({
-      success: true,
-      data: result,
-    });
+    return NextResponse.json(result);
   } catch (error) {
-    console.error('Erreur lors de la récupération des livres:', error);
+    console.error('Erreur lors de la récupération des locations:', error);
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
@@ -151,23 +138,27 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const validatedData = createBookSchema.parse(body);
+    const validatedData = createRentalSchema.parse(body);
 
-    const createdBook = await bookService.createBook(
-      validatedData,
-      session.user.id
-    );
+    const rentalData = {
+      ...validatedData,
+      startDate: validatedData.startDate
+        ? new Date(validatedData.startDate)
+        : undefined,
+    };
+
+    const rental = await rentalService.createRental(rentalData);
 
     return NextResponse.json(
       {
         success: true,
-        data: createdBook,
-        message: 'Livre créé avec succès',
+        data: rental,
+        message: 'Location créée avec succès',
       },
       { status: 201 }
     );
   } catch (error) {
-    console.error('Erreur lors de la création du livre:', error);
+    console.error('Erreur lors de la création de la location:', error);
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
