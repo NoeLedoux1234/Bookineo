@@ -6,6 +6,7 @@ import Card from '@/components/Card';
 import Filter from '@/components/Filter';
 
 export default function HomePage(): JSX.Element {
+  const [isFilterOpen, setIsFilterOpen] = React.useState(false);
   const [filterType, setFilterType] = React.useState<FilterType>('title');
   const [filterOrder, setFilterOrder] = React.useState<'asc' | 'desc'>('asc');
   type BookType = {
@@ -83,32 +84,105 @@ export default function HomePage(): JSX.Element {
   const handleValidate = () => {
     setFiltersApplied(true);
     setPage(1);
+    setIsFilterOpen(false); // Ferme le tiroir après validation
   };
 
   return (
-    <main className="min-h-screen flex bg-gray-50">
-      <Filter
-        type={filterType}
-        order={filterOrder}
-        onChange={(type, order) => {
-          setFilterType(type);
-          setFilterOrder(order);
-        }}
-        onSearchTitle={setSearchTitle}
-        onStatusChange={setStatus}
-        onCategoryChange={setCategory}
-        onAuthorChange={setAuthor}
-        onPriceChange={(min, max) => {
-          setPriceMin(min);
-          setPriceMax(max);
-        }}
-        onValidate={handleValidate}
-      />
-      <div className="flex-1 flex flex-col items-center justify-center p-6 ml-72">
+    <main className="min-h-screen flex bg-gray-50 relative">
+      {/* Bouton d'ouverture du tiroir : visible sur tablette et moins */}
+      <button
+        className="absolute top-6 left-6 z-30 flex items-center gap-2 px-4 py-2 bg-white rounded shadow hover:bg-blue-50 transition lg:hidden"
+        onClick={() => setIsFilterOpen(true)}
+        aria-label="Ouvrir les filtres"
+      >
+        <svg
+          width="24"
+          height="24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          viewBox="0 0 24 24"
+        >
+          <path d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+        <span className="font-semibold">Filtres</span>
+      </button>
+
+      {/* Overlay flou et tiroir : md et moins */}
+      {isFilterOpen && (
+        <div className="fixed inset-0 z-40 flex lg:hidden">
+          <div
+            className="absolute inset-0 bg-black/30 backdrop-blur-sm transition-opacity"
+            onClick={() => setIsFilterOpen(false)}
+          />
+          <aside
+            className="relative bg-white shadow-lg p-6 w-full max-w-xs h-full z-50 transition-transform duration-300"
+            style={{ transform: 'translateX(0)' }}
+          >
+            <div className="flex items-center justify-between mb-6">
+              <span className="text-lg font-bold">Filtres</span>
+              <button
+                className="p-2 rounded hover:bg-gray-100"
+                onClick={() => setIsFilterOpen(false)}
+                aria-label="Fermer"
+              >
+                <svg
+                  width="24"
+                  height="24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M6 6l12 12M6 18L18 6" />
+                </svg>
+              </button>
+            </div>
+            <Filter
+              type={filterType}
+              order={filterOrder}
+              onChange={(type, order) => {
+                setFilterType(type);
+                setFilterOrder(order);
+              }}
+              onSearchTitle={setSearchTitle}
+              onStatusChange={setStatus}
+              onCategoryChange={setCategory}
+              onAuthorChange={setAuthor}
+              onPriceChange={(min, max) => {
+                setPriceMin(min);
+                setPriceMax(max);
+              }}
+              onValidate={handleValidate}
+            />
+          </aside>
+        </div>
+      )}
+      <aside className="hidden lg:block w-72 bg-white shadow-lg p-6 border-r border-gray-200">
+        <Filter
+          type={filterType}
+          order={filterOrder}
+          onChange={(type, order) => {
+            setFilterType(type);
+            setFilterOrder(order);
+          }}
+          onSearchTitle={setSearchTitle}
+          onStatusChange={setStatus}
+          onCategoryChange={setCategory}
+          onAuthorChange={setAuthor}
+          onPriceChange={(min, max) => {
+            setPriceMin(min);
+            setPriceMax(max);
+          }}
+          onValidate={handleValidate}
+        />
+      </aside>
+
+      <div className="flex-1 flex flex-col items-center justify-center p-6">
         {loading ? (
           <div className="text-center py-8">Chargement des livres...</div>
         ) : (
-          <div className="w-full Subgrid">
+          <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 container">
             {books.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
                 Aucun livre trouvé.
