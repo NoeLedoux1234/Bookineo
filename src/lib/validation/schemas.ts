@@ -129,7 +129,7 @@ export const createBookSchema = z.object({
     .max(100, "Nom d'auteur trop long")
     .transform((author) => author.trim()),
   categoryName: z.string().max(50, 'Maximum 50 caractères').optional(),
-  categoryId: z.number().int().min(1, "L'ID de catégorie est requis"),
+  categoryId: z.number().int().min(1).optional(),
   price: z
     .number()
     .min(0, 'Prix ne peut pas être négatif')

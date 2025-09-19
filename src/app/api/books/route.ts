@@ -46,6 +46,20 @@ export const POST = withAuthAndErrorHandler(
     const body = await request.json();
     const validatedData = createBookSchema.parse(body);
 
+    // Générer un categoryId si pas fourni mais categoryName présent
+    if (!validatedData.categoryId && validatedData.categoryName) {
+      // Générer un ID simple basé sur le hash du nom de catégorie
+      validatedData.categoryId =
+        Math.abs(
+          validatedData.categoryName
+            .split('')
+            .reduce((a, b) => ((a << 5) - a + b.charCodeAt(0)) | 0, 0)
+        ) || 1;
+    } else if (!validatedData.categoryId) {
+      // ID par défaut si aucune catégorie
+      validatedData.categoryId = 1;
+    }
+
     const createdBook = await bookService.createBook(
       validatedData,
       request.user.id
